@@ -83,10 +83,13 @@ export async function GET(request: NextRequest) {
       .filter(r => r.task) // Filter out any missing tasks
     
     return NextResponse.json({ results })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error searching tasks:', error)
     return NextResponse.json(
-      { error: 'Failed to search tasks' },
+      { 
+        error: 'Failed to search tasks',
+        details: error?.message || String(error)
+      },
       { status: 500 }
     )
   }
