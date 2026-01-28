@@ -8,13 +8,21 @@ const adapter = new PrismaPg({
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
-  // Create admin user (Pavel)
+  const adminEmail = process.env.ADMIN_EMAIL
+  const adminName = process.env.ADMIN_NAME || 'Admin'
+
+  if (!adminEmail) {
+    console.error('❌ ADMIN_EMAIL environment variable is required')
+    process.exit(1)
+  }
+
+  // Create admin user
   const user = await prisma.user.upsert({
-    where: { email: 'pavel@xmation.ai' },
+    where: { email: adminEmail },
     update: {},
     create: {
-      email: 'pavel@xmation.ai',
-      name: 'Pavel Dovhomilja',
+      email: adminEmail,
+      name: adminName,
       emailVerified: true,
     }
   })

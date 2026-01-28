@@ -1,0 +1,127 @@
+// ============================================
+// PROPOSED SCHEMA CHANGES FOR MULTI-TENANT
+// Copy relevant sections to schema.prisma
+// ============================================
+
+// NEW MODEL: API Keys
+model ApiKey {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique
+  name      String    @default("Default") // "Clawdbot", "CLI", etc.
+  lastUsed  DateTime?
+  createdAt DateTime  @default(now())
+  revokedAt DateTime? // Soft delete - null means active
+  
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("api_key")
+}
+
+// UPDATED: User model (add relations)
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  avatar        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Existing relations
+  sessions      Session[]
+  accounts      Account[]
+  assignedTasks Task[]    @relation("TaskAssignee")
+  activityLogs  ActivityLog[]
+  
+  // NEW: Ownership relations
+  apiKeys       ApiKey[]
+  ownedTasks    Task[]    @relation("TaskOwner")
+  projects      Project[]
+  labels        Label[]
+
+  @@map("user")
+}
+
+// UPDATED: Project model (add userId)
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  color       String   @default("#6366f1")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // NEW: Owner
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  tasks       Task[]
+
+  @@index([userId])
+  @@map("project")
+}
+
+// UPDATED: Label model (add userId)
+model Label {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#10b981")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // NEW: Owner
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  tasks     TaskLabel[]
+
+  @@index([userId])
+  @@map("label")
+}
+
+// UPDATED: Task model (add userId for ownership)
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(BACKLOG)
+  priority    Priority   @default(MEDIUM)
+  isRecurring Boolean    @default(false)
+  position    Int        @default(0)
+  
+  // NEW: Owner (the user whose board this task belongs to)
+  userId      String
+  user        User       @relation("TaskOwner", fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Existing: Assignee (can be different from owner in team scenarios)
+  assigneeId  String?
+  assignee    User?      @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  
+  projectId   String?
+  project     Project?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  labels      TaskLabel[]
+  
+  startedAt   DateTime?
+  statusNote  String?
+  completedAt DateTime?
+  outcome     String?
+  blocker     String?
+  need        String?
+  notes       String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  activityLogs ActivityLog[]
+  
+  @@index([status])
+  @@index([priority])
+  @@index([userId])
+  @@index([assigneeId])
+  @@index([projectId])
+  @@map("task")
+}

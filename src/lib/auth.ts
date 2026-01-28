@@ -30,7 +30,7 @@ export const auth = betterAuth({
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              from: process.env.RESEND_FROM_EMAIL || "Mission Control <noreply@xmation.ai>",
+              from: process.env.RESEND_FROM_EMAIL || "Mission Control <noreply@example.com>",
               to: email,
               subject: `Your Mission Control login code: ${otp}`,
               text: `Your one-time login code is: ${otp}\n\nThis code expires in 5 minutes.`,
