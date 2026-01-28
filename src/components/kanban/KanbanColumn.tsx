@@ -49,7 +49,9 @@ export function KanbanColumn({
     <div
       ref={setNodeRef}
       className={`
-        flex flex-col min-w-[280px] max-w-[320px] rounded-xl border-2
+        flex flex-col w-[85vw] sm:w-[300px] md:min-w-[280px] md:max-w-[320px] md:w-auto
+        shrink-0 snap-center md:snap-align-none
+        rounded-xl border-2
         ${colorMap[color] || colorMap.slate}
         ${isOver ? 'ring-2 ring-primary' : ''}
         transition-all
@@ -69,16 +71,16 @@ export function KanbanColumn({
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 w-6 p-0"
+            className="h-8 w-8 sm:h-6 sm:w-6 p-0 touch-manipulation"
             onClick={() => onAddTask(id)}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-5 w-5 sm:h-4 sm:w-4" />
           </Button>
         )}
       </div>
 
       {/* Tasks Container */}
-      <div className="flex-1 p-2 space-y-2 overflow-y-auto max-h-[calc(100vh-280px)]">
+      <div className="flex-1 p-2 space-y-2 overflow-y-auto max-h-[calc(100vh-320px)] sm:max-h-[calc(100vh-280px)]">
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
             <TaskCard

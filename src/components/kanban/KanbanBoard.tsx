@@ -293,18 +293,19 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Stats Bar with refresh indicator */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <StatsBar tasks={tasks} />
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span>Updated {lastRefresh.toLocaleTimeString()}</span>
+        <div className="flex items-center justify-end gap-2 text-xs text-gray-500">
+          <span className="hidden sm:inline">Updated {lastRefresh.toLocaleTimeString()}</span>
+          <span className="sm:hidden">{lastRefresh.toLocaleTimeString()}</span>
           <button
             onClick={handleManualRefresh}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+            className="p-2 sm:p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors touch-manipulation"
             title="Refresh now"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
               <path d="M3 3v5h5"/>
               <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
@@ -332,7 +333,7 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 overflow-x-auto pb-4 px-1">
+        <div className="flex gap-3 md:gap-4 overflow-x-auto pb-4 -mx-3 px-3 sm:-mx-4 sm:px-4 md:mx-0 md:px-1 snap-x snap-mandatory md:snap-none">
           {KANBAN_COLUMNS.map((column) => (
             <KanbanColumn
               key={column.id}

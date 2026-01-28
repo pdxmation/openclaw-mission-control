@@ -72,14 +72,14 @@ export default async function MissionControl() {
   }))
 
   return (
-    <div className="max-w-[1800px] mx-auto p-6 flex gap-6">
+    <div className="max-w-[1800px] mx-auto px-3 py-4 sm:px-4 sm:py-5 md:px-6 md:py-6 flex gap-4 md:gap-6">
       {/* Kanban Board */}
       <div className="flex-1 min-w-0">
         <KanbanBoard initialTasks={serializedTasks} />
       </div>
       
       {/* Activity Feed Sidebar */}
-      <div className="w-80 shrink-0 hidden lg:block">
+      <div className="w-80 shrink-0 hidden xl:block">
         <div className="sticky top-24 h-[calc(100vh-8rem)]">
           <ActivityFeed initialActivities={serializedActivities} />
         </div>

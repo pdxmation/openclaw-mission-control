@@ -54,7 +54,7 @@ function FilterDropdown({
       <button
         onClick={() => setOpen(!open)}
         className={`
-          flex items-center gap-2 px-3 py-1.5 rounded-lg border
+          flex items-center gap-2 px-3 py-2 sm:py-1.5 rounded-lg border touch-manipulation
           ${selected ? 'border-primary bg-primary/10' : 'border-border bg-background'}
           hover:border-primary/50 transition-colors text-sm
         `}
@@ -141,8 +141,8 @@ export function FilterBar({
   onProjectChange,
 }: FilterBarProps) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-sm text-muted-foreground">Filter:</span>
+    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+      <span className="text-sm text-muted-foreground hidden sm:inline">Filter:</span>
       <FilterDropdown
         label="Assignee"
         options={assignees}

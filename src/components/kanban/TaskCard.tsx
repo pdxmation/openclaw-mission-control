@@ -37,8 +37,8 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
       {...listeners}
       onClick={onClick}
       className={`
-        bg-card border border-border rounded-lg p-3 cursor-grab active:cursor-grabbing
-        hover:border-primary/50 transition-colors shadow-sm
+        relative bg-card border border-border rounded-lg p-3 cursor-grab active:cursor-grabbing
+        hover:border-primary/50 transition-colors shadow-sm touch-manipulation
         ${isDragging ? 'ring-2 ring-primary' : ''}
       `}
     >
