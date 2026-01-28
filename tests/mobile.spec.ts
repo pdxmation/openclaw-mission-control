@@ -12,10 +12,8 @@ test.describe('Mobile Responsiveness', () => {
   })
 
   test('should display kanban columns', async ({ page }) => {
-    // Columns should exist
-    const columns = page.locator('.flex.gap-3 > div, .flex.gap-4 > div')
-    const count = await columns.count()
-    expect(count).toBeGreaterThan(0)
+    // At least one column heading should be visible
+    await expect(page.locator('h2:has-text("Backlog")').first()).toBeVisible()
   })
 
   test('should show search input on mobile', async ({ page }) => {
@@ -29,12 +27,10 @@ test.describe('Mobile Responsiveness', () => {
   })
 
   test('should be able to open task modal', async ({ page }) => {
-    // Click on a task card
     const task = page.locator('.rounded-lg.border.bg-card').first()
     if (await task.isVisible()) {
       await task.click()
-      // Modal should appear
-      await expect(page.locator('[role="dialog"], .fixed.inset-0')).toBeVisible({ timeout: 3000 })
+      await expect(page.locator('.fixed.inset-0').first()).toBeVisible({ timeout: 3000 })
     }
   })
 })
@@ -68,16 +64,16 @@ test.describe('Desktop Responsiveness', () => {
   })
 
   test('should hide floating activity button on desktop', async ({ page }) => {
-    // FAB should be hidden on xl screens (has xl:hidden class)
+    // FAB should be hidden on xl screens
     const fab = page.locator('button[aria-label="Open Activity Feed"]')
     await expect(fab).toBeHidden()
   })
 
-  test('should show all column titles', async ({ page }) => {
+  test('should show all column headings', async ({ page }) => {
     const columnTitles = ['Recurring', 'Backlog', 'In Progress', 'Review', 'Blocked', 'Completed']
     
     for (const title of columnTitles) {
-      await expect(page.locator(`text="${title}"`)).toBeVisible()
+      await expect(page.locator(`h2:has-text("${title}")`).first()).toBeVisible()
     }
   })
 })

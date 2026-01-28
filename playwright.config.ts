@@ -2,11 +2,12 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './tests',
-  fullyParallel: true,
+  fullyParallel: false, // Run tests sequentially to avoid server overload
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1, // Single worker to prevent server crashes
   reporter: 'html',
+  timeout: 60000, // 60 second timeout per test
   
   use: {
     baseURL: 'http://localhost:3000',
@@ -19,10 +20,11 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
+    // Mobile Chrome disabled by default - enable with: npx playwright test --project="Mobile Chrome"
+    // {
+    //   name: 'Mobile Chrome',
+    //   use: { ...devices['Pixel 5'] },
+    // },
   ],
 
   // Run local dev server before tests

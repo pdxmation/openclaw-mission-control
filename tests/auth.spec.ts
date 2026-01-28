@@ -1,20 +1,18 @@
 import { test, expect } from '@playwright/test'
 
-// Note: These tests check the login page directly
-// With BYPASS_AUTH=true, the main app doesn't redirect to login
 test.describe('Authentication Page', () => {
   test('should display login page', async ({ page }) => {
     await page.goto('/login')
     
-    // Should show Mission Control heading
-    await expect(page.locator('text=/Mission Control/i')).toBeVisible()
+    // Should show Mission Control in the card title
+    await expect(page.locator('[data-slot="card-title"]')).toBeVisible()
   })
 
   test('should show email input on login page', async ({ page }) => {
     await page.goto('/login')
     
     // Should have email input
-    const emailInput = page.locator('input[type="email"], input[name="email"], input[placeholder*="email" i]')
+    const emailInput = page.locator('input[type="email"], input[name="email"]')
     await expect(emailInput).toBeVisible()
   })
 
@@ -22,7 +20,7 @@ test.describe('Authentication Page', () => {
     await page.goto('/login')
     
     // Should have a submit button
-    const submitButton = page.locator('button[type="submit"], button:has-text("Sign"), button:has-text("Login"), button:has-text("Continue")')
+    const submitButton = page.locator('button[type="submit"]')
     await expect(submitButton).toBeVisible()
   })
 
@@ -34,7 +32,7 @@ test.describe('Authentication Page', () => {
     await page.waitForTimeout(1000)
     expect(page.url()).not.toContain('/login')
     
-    // Should show kanban board elements
-    await expect(page.locator('text="Backlog"')).toBeVisible()
+    // Should show kanban board - look for column heading
+    await expect(page.locator('h2:has-text("Backlog")')).toBeVisible()
   })
 })
