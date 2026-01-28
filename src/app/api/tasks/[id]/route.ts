@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
-import { validateApiToken, unauthorizedResponse } from '../../../../lib/auth'
+import { validateApiToken, unauthorizedResponse } from '../../../../lib/api-auth'
 
 interface RouteParams {
   params: Promise<{ id: string }>
