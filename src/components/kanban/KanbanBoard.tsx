@@ -20,6 +20,7 @@ import { TaskCard } from './TaskCard'
 import { TaskModal, TaskFormData } from './TaskModal'
 import { StatsBar } from './StatsBar'
 import { FilterBar } from './FilterBar'
+import { SearchBar } from './SearchBar'
 
 interface User {
   id: string
@@ -226,6 +227,29 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
     setModalOpen(true)
   }
 
+  const handleSearchSelect = async (taskId: string) => {
+    // First check if task is in current state
+    let task = tasks.find((t) => t.id === taskId)
+    
+    if (!task) {
+      // Fetch the task if not in state
+      try {
+        const res = await fetch(`/api/tasks/${taskId}`)
+        if (res.ok) {
+          task = await res.json()
+        }
+      } catch (error) {
+        console.error('Failed to fetch task:', error)
+        return
+      }
+    }
+    
+    if (task) {
+      setEditingTask(task)
+      setModalOpen(true)
+    }
+  }
+
   const handleAddTask = (status: TaskStatus) => {
     setEditingTask(null)
     setDefaultStatus(status)
@@ -314,16 +338,20 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
           </button>
         </div>
       </div>
-      
-      {/* Filter Bar */}
-      <FilterBar
-        assignees={assigneeOptions}
-        projects={projectOptions}
-        selectedAssignee={selectedAssignee}
-        selectedProject={selectedProject}
-        onAssigneeChange={setSelectedAssignee}
-        onProjectChange={setSelectedProject}
-      />
+
+      {/* Search and Filter Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <SearchBar onSelectTask={handleSearchSelect} />
+        <div className="h-6 w-px bg-border hidden sm:block" />
+        <FilterBar
+          assignees={assigneeOptions}
+          projects={projectOptions}
+          selectedAssignee={selectedAssignee}
+          selectedProject={selectedProject}
+          onAssigneeChange={setSelectedAssignee}
+          onProjectChange={setSelectedProject}
+        />
+      </div>
 
       {/* Kanban Board */}
       <DndContext
