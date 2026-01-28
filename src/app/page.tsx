@@ -72,33 +72,18 @@ export default async function MissionControl() {
   }))
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-[1800px] mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Mission Control</h1>
-              <p className="text-sm text-muted-foreground">Task management for R2</p>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content with Activity Sidebar */}
-      <div className="max-w-[1800px] mx-auto p-6 flex gap-6">
-        {/* Kanban Board */}
-        <div className="flex-1 min-w-0">
-          <KanbanBoard initialTasks={serializedTasks} />
-        </div>
-        
-        {/* Activity Feed Sidebar */}
-        <div className="w-80 shrink-0 hidden lg:block">
-          <div className="sticky top-24 h-[calc(100vh-8rem)]">
-            <ActivityFeed initialActivities={serializedActivities} />
-          </div>
+    <div className="max-w-[1800px] mx-auto p-6 flex gap-6">
+      {/* Kanban Board */}
+      <div className="flex-1 min-w-0">
+        <KanbanBoard initialTasks={serializedTasks} />
+      </div>
+      
+      {/* Activity Feed Sidebar */}
+      <div className="w-80 shrink-0 hidden lg:block">
+        <div className="sticky top-24 h-[calc(100vh-8rem)]">
+          <ActivityFeed initialActivities={serializedActivities} />
         </div>
       </div>
-    </main>
+    </div>
   )
 }
