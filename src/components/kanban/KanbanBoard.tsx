@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -45,10 +45,50 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
   const [modalOpen, setModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<TaskWithRelations | null>(null)
   const [defaultStatus, setDefaultStatus] = useState<TaskStatus>('BACKLOG')
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
   
   // Filters
   const [selectedAssignee, setSelectedAssignee] = useState<string | null>(null)
   const [selectedProject, setSelectedProject] = useState<string | null>(null)
+  
+  // Track if drag is in progress to prevent refresh during drag
+  const isDragging = useRef(false)
+
+  // Auto-refresh every 60 seconds
+  useEffect(() => {
+    const fetchTasks = async () => {
+      // Don't refresh while dragging
+      if (isDragging.current) return
+      
+      try {
+        const res = await fetch('/api/tasks')
+        if (res.ok) {
+          const data = await res.json()
+          // Transform dates to strings for consistency
+          const refreshedTasks: TaskWithRelations[] = data.all.map((task: any) => ({
+            ...task,
+            createdAt: typeof task.createdAt === 'string' ? task.createdAt : new Date(task.createdAt).toISOString(),
+            updatedAt: typeof task.updatedAt === 'string' ? task.updatedAt : new Date(task.updatedAt).toISOString(),
+          }))
+          setTasks(refreshedTasks)
+          setLastRefresh(new Date())
+        }
+      } catch (error) {
+        console.error('Auto-refresh failed:', error)
+      }
+    }
+
+    // Initial fetch after mount
+    const initialTimeout = setTimeout(fetchTasks, 1000)
+    
+    // Then every 60 seconds
+    const interval = setInterval(fetchTasks, 60000)
+    
+    return () => {
+      clearTimeout(initialTimeout)
+      clearInterval(interval)
+    }
+  }, [])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -105,6 +145,7 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
   )
 
   const handleDragStart = (event: DragStartEvent) => {
+    isDragging.current = true
     const task = tasks.find((t) => t.id === event.active.id)
     if (task) {
       setActiveTask(task)
@@ -144,6 +185,7 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
   }
 
   const handleDragEnd = async (event: DragEndEvent) => {
+    isDragging.current = false
     const { active, over } = event
     setActiveTask(null)
 
@@ -231,10 +273,46 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
     }
   }
 
+  const handleManualRefresh = async () => {
+    if (isDragging.current) return
+    try {
+      const res = await fetch('/api/tasks')
+      if (res.ok) {
+        const data = await res.json()
+        const refreshedTasks: TaskWithRelations[] = data.all.map((task: any) => ({
+          ...task,
+          createdAt: typeof task.createdAt === 'string' ? task.createdAt : new Date(task.createdAt).toISOString(),
+          updatedAt: typeof task.updatedAt === 'string' ? task.updatedAt : new Date(task.updatedAt).toISOString(),
+        }))
+        setTasks(refreshedTasks)
+        setLastRefresh(new Date())
+      }
+    } catch (error) {
+      console.error('Manual refresh failed:', error)
+    }
+  }
+
   return (
     <div className="space-y-6">
-      {/* Stats Bar */}
-      <StatsBar tasks={tasks} />
+      {/* Stats Bar with refresh indicator */}
+      <div className="flex items-center justify-between">
+        <StatsBar tasks={tasks} />
+        <div className="flex items-center gap-2 text-xs text-gray-500">
+          <span>Updated {lastRefresh.toLocaleTimeString()}</span>
+          <button
+            onClick={handleManualRefresh}
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+            title="Refresh now"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+              <path d="M16 21h5v-5"/>
+            </svg>
+          </button>
+        </div>
+      </div>
       
       {/* Filter Bar */}
       <FilterBar
