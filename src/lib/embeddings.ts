@@ -138,20 +138,18 @@ export async function searchTasksBySimilarity(
   const queryEmbedding = await generateEmbedding(query)
   const embeddingStr = `[${queryEmbedding.join(',')}]`
   
-  const results = await prisma.$queryRawUnsafe<Array<{ task_id: string; similarity: number }>>(
-    `
+  // Use template literal to properly inject the vector - pgvector needs the string directly
+  const sql = `
     SELECT 
       task_id,
-      1 - (embedding <=> $1::vector) as similarity
+      1 - (embedding <=> '${embeddingStr}'::vector) as similarity
     FROM task_embedding
-    WHERE 1 - (embedding <=> $1::vector) > $2
-    ORDER BY embedding <=> $1::vector
-    LIMIT $3
-    `,
-    embeddingStr,
-    minSimilarity,
-    limit
-  )
+    WHERE 1 - (embedding <=> '${embeddingStr}'::vector) > ${minSimilarity}
+    ORDER BY embedding <=> '${embeddingStr}'::vector
+    LIMIT ${limit}
+  `
+  
+  const results = await prisma.$queryRawUnsafe<Array<{ task_id: string; similarity: number }>>(sql)
   
   return results.map(r => ({
     taskId: r.task_id,
