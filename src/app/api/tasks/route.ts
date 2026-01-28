@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../lib/prisma'
 import { validateApiToken, unauthorizedResponse } from '../../../lib/api-auth'
+import { embedTask } from '../../../lib/embeddings'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -155,6 +156,9 @@ export async function POST(request: NextRequest) {
         taskId: task.id,
       }
     })
+    
+    // Generate embedding async (don't block response)
+    embedTask(task).catch(err => console.error('Embedding failed:', err))
     
     return NextResponse.json(task, { status: 201 })
   } catch (error) {

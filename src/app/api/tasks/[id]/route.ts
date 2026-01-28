@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
 import { validateApiToken, unauthorizedResponse } from '../../../../lib/api-auth'
+import { embedTask, deleteTaskEmbedding } from '../../../../lib/embeddings'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -172,6 +173,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }
     })
     
+    // Re-generate embedding if content changed (async, don't block)
+    if (body.title || body.description || body.notes || body.outcome || body.blocker || body.need) {
+      embedTask(task).catch(err => console.error('Embedding update failed:', err))
+    }
+    
     return NextResponse.json(task)
   } catch (error: any) {
     console.error('Error updating task:', error)
@@ -208,6 +214,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     await prisma.task.delete({
       where: { id }
     })
+    
+    // Delete embedding (async)
+    deleteTaskEmbedding(id).catch(err => console.error('Embedding delete failed:', err))
     
     // Log activity
     if (task) {
