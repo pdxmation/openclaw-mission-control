@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TaskStatus {
+  IN_PROGRESS
+  BACKLOG
+  COMPLETED
+  BLOCKED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model Task {
+  id        String     @id @default(cuid())
+  title     String
+  status    TaskStatus @default(BACKLOG)
+  priority  Priority   @default(MEDIUM)
+  
+  // Status-specific fields
+  startedAt   DateTime?
+  statusNote  String?     // e.g., "Blocked", "Queued", "In Review"
+  
+  // Completion tracking
+  completedAt DateTime?
+  outcome     String?
+  
+  // Blocker tracking
+  blocker     String?
+  need        String?
+  
+  // General notes
+  notes       String?
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([status])
+  @@index([priority])
+}
