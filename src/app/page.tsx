@@ -2,35 +2,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { parseMissionControl } from "@/lib/parse-mission-control"
 
-// Sample data - in production this would come from an API/database
-const inProgress = [
-  { task: "GSuite integration", started: "2026-01-28", status: "Blocked", notes: "Needs OAuth credentials setup" },
-  { task: "Website copy review", started: "2026-01-28", status: "Queued", notes: "Awaiting go-ahead" },
-]
-
-const backlog = [
-  { task: "Content calendar", priority: "Medium", notes: "Blog/social strategy" },
-  { task: "Lead gen research", priority: "Medium", notes: "Channels, tactics for Xmation" },
-  { task: "SEO analysis", priority: "Medium", notes: '"AI zaměstnanec" keyword opportunities' },
-  { task: "Case study template", priority: "Medium", notes: "Help get customer testimonials" },
-]
-
-const completed = [
-  { task: "Telegram pairing", completed: "2026-01-28", outcome: "Connected" },
-  { task: "Browser setup", completed: "2026-01-28", outcome: "Clawd profile running" },
-  { task: "Xmation.ai deep dive", completed: "2026-01-28", outcome: "Full product/pricing analysis" },
-  { task: "Competitor research", completed: "2026-01-28", outcome: "8 competitors analyzed" },
-  { task: "Workspace setup", completed: "2026-01-28", outcome: "MISSION_CONTROL, USER.md, projects/" },
-  { task: "Morning brief cron", completed: "2026-01-28", outcome: "Daily 07:45 CET → Telegram" },
-]
-
-const blocked = [
-  { task: "GSuite monitoring", blocker: "No OAuth", need: "Credentials from Google Cloud Console" },
-  { task: "Xmation codebase", blocker: "No access", need: "Repo location (private? org?)" },
-]
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default function MissionControl() {
+  const { lastUpdated, inProgress, backlog, completed, blocked } = parseMissionControl()
+
   return (
     <main className="min-h-screen bg-background p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -40,7 +19,7 @@ export default function MissionControl() {
             <p className="text-muted-foreground mt-1">R2&apos;s task ledger — what&apos;s done, what&apos;s in progress, what&apos;s next</p>
           </div>
           <Badge variant="outline" className="text-sm">
-            Last updated: {new Date().toLocaleDateString()}
+            Last updated: {lastUpdated}
           </Badge>
         </div>
 
@@ -75,10 +54,10 @@ export default function MissionControl() {
         {/* Task Tabs */}
         <Tabs defaultValue="in-progress" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="in-progress">🔥 In Progress</TabsTrigger>
-            <TabsTrigger value="backlog">📋 Backlog</TabsTrigger>
-            <TabsTrigger value="completed">✅ Completed</TabsTrigger>
-            <TabsTrigger value="blocked">🚧 Blocked</TabsTrigger>
+            <TabsTrigger value="in-progress">🔥 In Progress ({inProgress.length})</TabsTrigger>
+            <TabsTrigger value="backlog">📋 Backlog ({backlog.length})</TabsTrigger>
+            <TabsTrigger value="completed">✅ Completed ({completed.length})</TabsTrigger>
+            <TabsTrigger value="blocked">🚧 Blocked ({blocked.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="in-progress">
@@ -88,30 +67,34 @@ export default function MissionControl() {
                 <CardDescription>Currently active tasks</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Task</TableHead>
-                      <TableHead>Started</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Notes</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {inProgress.map((item, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="font-medium">{item.task}</TableCell>
-                        <TableCell>{item.started}</TableCell>
-                        <TableCell>
-                          <Badge variant={item.status === "Blocked" ? "destructive" : "secondary"}>
-                            {item.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">{item.notes}</TableCell>
+                {inProgress.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No tasks in progress</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Task</TableHead>
+                        <TableHead>Started</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Notes</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {inProgress.map((item, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="font-medium">{item.task}</TableCell>
+                          <TableCell>{item.started}</TableCell>
+                          <TableCell>
+                            <Badge variant={item.status.toLowerCase().includes("blocked") ? "destructive" : "secondary"}>
+                              {item.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{item.notes}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -123,26 +106,32 @@ export default function MissionControl() {
                 <CardDescription>Queued tasks waiting to be started</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Task</TableHead>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Notes</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {backlog.map((item, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="font-medium">{item.task}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{item.priority}</Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">{item.notes}</TableCell>
+                {backlog.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">Backlog is empty</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Task</TableHead>
+                        <TableHead>Priority</TableHead>
+                        <TableHead>Notes</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {backlog.map((item, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="font-medium">{item.task}</TableCell>
+                          <TableCell>
+                            <Badge variant={item.priority === "High" ? "default" : "outline"}>
+                              {item.priority}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{item.notes}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -154,24 +143,28 @@ export default function MissionControl() {
                 <CardDescription>Finished tasks</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Task</TableHead>
-                      <TableHead>Completed</TableHead>
-                      <TableHead>Outcome</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {completed.map((item, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="font-medium">{item.task}</TableCell>
-                        <TableCell>{item.completed}</TableCell>
-                        <TableCell className="text-muted-foreground">{item.outcome}</TableCell>
+                {completed.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">No completed tasks yet</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Task</TableHead>
+                        <TableHead>Completed</TableHead>
+                        <TableHead>Outcome</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {completed.map((item, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="font-medium">{item.task}</TableCell>
+                          <TableCell>{item.completed}</TableCell>
+                          <TableCell className="text-muted-foreground">{item.outcome}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -183,30 +176,39 @@ export default function MissionControl() {
                 <CardDescription>Tasks waiting on dependencies</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Task</TableHead>
-                      <TableHead>Blocker</TableHead>
-                      <TableHead>Need</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {blocked.map((item, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="font-medium">{item.task}</TableCell>
-                        <TableCell>
-                          <Badge variant="destructive">{item.blocker}</Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">{item.need}</TableCell>
+                {blocked.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">Nothing blocked! 🎉</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Task</TableHead>
+                        <TableHead>Blocker</TableHead>
+                        <TableHead>Need</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {blocked.map((item, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="font-medium">{item.task}</TableCell>
+                          <TableCell>
+                            <Badge variant="destructive">{item.blocker}</Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{item.need}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
+        
+        <footer className="text-center text-muted-foreground text-sm pt-8 border-t">
+          <p>Data source: <code className="bg-muted px-1 rounded">MISSION_CONTROL.md</code></p>
+          <p className="mt-1">Refresh the page to see latest updates</p>
+        </footer>
       </div>
     </main>
   )
