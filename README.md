@@ -1,122 +1,184 @@
 # Mission Control
 
-R2's task management dashboard with Prisma + PostgreSQL backend.
+AI agent task management dashboard with Second Brain document viewer. Built with Next.js, Prisma, and PostgreSQL.
+
+**Live:** https://moltmc.app
+
+## Features
+
+- 📋 **Kanban Board** — Drag-and-drop task management (Backlog → In Progress → Review → Completed)
+- 📄 **Second Brain** — Document viewer for notes, journals, research (Obsidian + Linear inspired)
+- 🔍 **Semantic Search** — Vector embeddings for intelligent task/document search
+- 🤖 **API-First** — Full REST API for Clawdbot integration
+- 📱 **Responsive** — Mobile-friendly design
 
 ## Setup
 
 ### 1. Prerequisites
 
 - Node.js 20+
-- PostgreSQL database
+- PostgreSQL database (with pgvector extension for search)
 
 ### 2. Environment Variables
-
-Copy `.env.example` to `.env` and configure:
 
 ```bash
 cp .env.example .env
 ```
 
-Set your database URL and API token:
+See `.env.example` for all required variables.
 
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/mission_control?schema=public"
-API_TOKEN="your-secure-random-token"
-```
-
-Generate a secure token:
+Generate secure tokens:
 ```bash
+# API Token
 openssl rand -hex 32
+
+# Auth Secret
+openssl rand -base64 32
 ```
 
-### 3. Install Dependencies
+### 3. Install & Run
 
 ```bash
 npm install
-```
-
-### 4. Database Setup
-
-```bash
-# Generate Prisma client
 npm run db:generate
-
-# Push schema to database (development)
 npm run db:push
-
-# Or create a migration (production)
-npm run db:migrate
-
-# Seed initial data from MISSION_CONTROL.md
-npm run db:seed
-```
-
-### 5. Run Development Server
-
-```bash
 npm run dev
 ```
 
-## API Endpoints
+## API Reference
 
-All endpoints require authentication via Bearer token:
+All endpoints require Bearer token authentication:
 
 ```bash
-curl -H "Authorization: Bearer your-token" http://localhost:3000/api/tasks
+curl -H "Authorization: Bearer $API_TOKEN" https://moltmc.app/api/tasks
 ```
 
-### Tasks
+### Tasks API
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/tasks` | List all tasks (grouped by status) |
 | GET | `/api/tasks?status=IN_PROGRESS` | Filter by status |
-| POST | `/api/tasks` | Create a task |
+| GET | `/api/tasks?priority=HIGH` | Filter by priority |
+| POST | `/api/tasks` | Create task |
 | GET | `/api/tasks/[id]` | Get single task |
-| PATCH | `/api/tasks/[id]` | Update a task |
-| DELETE | `/api/tasks/[id]` | Delete a task |
+| PATCH | `/api/tasks/[id]` | Update task |
+| DELETE | `/api/tasks/[id]` | Delete task |
+| GET | `/api/tasks/search?q=query` | Semantic search |
 
-### Task Schema
+#### Task Schema
 
 ```typescript
 {
-  title: string           // Task name
-  status: 'IN_PROGRESS' | 'BACKLOG' | 'COMPLETED' | 'BLOCKED'
+  title: string           // Required
+  description?: string    // Details
+  status: 'BACKLOG' | 'IN_PROGRESS' | 'REVIEW' | 'COMPLETED' | 'BLOCKED'
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-  startedAt?: Date        // When work started
-  statusNote?: string     // e.g., "Queued", "In Review"
-  completedAt?: Date      // When completed
-  outcome?: string        // Result description
+  outcome?: string        // Result when completed
   blocker?: string        // What's blocking
-  need?: string          // What's needed to unblock
-  notes?: string         // General notes
+  notes?: string          // Additional context
 }
 ```
 
-### Example: Create a Task
+#### Examples
 
 ```bash
-curl -X POST http://localhost:3000/api/tasks \
-  -H "Authorization: Bearer your-token" \
+# Create task
+curl -X POST "https://moltmc.app/api/tasks" \
+  -H "Authorization: Bearer $API_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"title": "New feature", "priority": "HIGH"}'
+  -d '{"title": "New feature", "priority": "HIGH", "status": "BACKLOG"}'
+
+# Update status
+curl -X PATCH "https://moltmc.app/api/tasks/{id}" \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "COMPLETED", "outcome": "Shipped to production"}'
+
+# Delete task
+curl -X DELETE "https://moltmc.app/api/tasks/{id}" \
+  -H "Authorization: Bearer $API_TOKEN"
 ```
 
-### Example: Update Task Status
+### Documents API (Second Brain)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/documents` | List documents |
+| GET | `/api/documents?type=journal` | Filter by type |
+| GET | `/api/documents?tag=research` | Filter by tag |
+| GET | `/api/documents?search=query` | Text search |
+| POST | `/api/documents` | Create document |
+| GET | `/api/documents/[id]` | Get single document |
+| PATCH | `/api/documents/[id]` | Update document |
+| DELETE | `/api/documents/[id]` | Delete document |
+
+#### Document Schema
+
+```typescript
+{
+  title: string           // Required
+  content: string         // Markdown content
+  type: 'note' | 'journal' | 'concept' | 'research'
+  tags: string[]          // For organization
+}
+```
+
+#### Examples
 
 ```bash
-curl -X PATCH http://localhost:3000/api/tasks/task-id \
-  -H "Authorization: Bearer your-token" \
+# Create document
+curl -X POST "https://moltmc.app/api/documents" \
+  -H "Authorization: Bearer $API_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"status": "COMPLETED", "outcome": "Shipped to prod"}'
+  -d '{
+    "title": "Daily Journal - 2026-01-29",
+    "content": "# Summary\n\nWorked on...",
+    "type": "journal",
+    "tags": ["daily", "january"]
+  }'
+
+# List research documents
+curl "https://moltmc.app/api/documents?type=research" \
+  -H "Authorization: Bearer $API_TOKEN"
 ```
 
 ## NPM Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run db:generate` - Generate Prisma client
-- `npm run db:push` - Push schema to DB (dev)
-- `npm run db:migrate` - Create migration
-- `npm run db:seed` - Seed initial data
-- `npm run db:studio` - Open Prisma Studio GUI
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run start` | Start production server |
+| `npm run db:generate` | Generate Prisma client |
+| `npm run db:push` | Push schema to DB |
+| `npm run db:migrate` | Create migration |
+| `npm run db:seed` | Seed initial data |
+| `npm run db:studio` | Open Prisma Studio GUI |
+
+## Clawdbot Integration
+
+Add to your Clawdbot's `TOOLS.md`:
+
+```markdown
+### Mission Control
+- **Dashboard:** https://moltmc.app
+- **API:** https://moltmc.app/api/tasks
+- **Docs API:** https://moltmc.app/api/documents
+- **Token:** mission-control/.env → API_TOKEN
+```
+
+See `skills/mission-control/SKILL.md` for full Clawdbot skill documentation.
+
+## Tech Stack
+
+- **Framework:** Next.js 14 (App Router)
+- **Database:** PostgreSQL + Prisma
+- **Search:** pgvector + OpenAI embeddings
+- **UI:** Tailwind CSS + shadcn/ui
+- **Auth:** Better Auth
+- **Hosting:** Coolify (self-hosted)
+
+## License
+
+MIT
