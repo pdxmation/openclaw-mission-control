@@ -30,6 +30,9 @@ export default async function MissionControl() {
           include: {
             label: true
           }
+        },
+        subtasks: {
+          orderBy: { position: 'asc' }
         }
       },
       orderBy: [
@@ -65,6 +68,11 @@ export default async function MissionControl() {
     ...task,
     createdAt: task.createdAt.toISOString(),
     updatedAt: task.updatedAt.toISOString(),
+    subtasks: task.subtasks.map(subtask => ({
+      ...subtask,
+      createdAt: subtask.createdAt.toISOString(),
+      updatedAt: subtask.updatedAt.toISOString(),
+    })),
   }))
 
   const serializedActivities = activities.map(a => ({

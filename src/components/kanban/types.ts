@@ -11,6 +11,16 @@ export interface TaskLabel {
   }
 }
 
+export interface Subtask {
+  id: string
+  title: string
+  completed: boolean
+  position: number
+  taskId: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface TaskWithRelations {
   id: string
   title: string
@@ -33,6 +43,7 @@ export interface TaskWithRelations {
     color: string
   } | null
   labels: TaskLabel[]
+  subtasks: Subtask[]
   createdAt: string
   updatedAt: string
 }

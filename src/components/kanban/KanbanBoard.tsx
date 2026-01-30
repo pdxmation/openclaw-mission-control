@@ -316,6 +316,29 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
     }
   }
 
+  const refreshTasks = async () => {
+    try {
+      const res = await fetch('/api/tasks')
+      if (res.ok) {
+        const data = await res.json()
+        const refreshedTasks: TaskWithRelations[] = data.all.map((task: any) => ({
+          ...task,
+          createdAt: typeof task.createdAt === 'string' ? task.createdAt : new Date(task.createdAt).toISOString(),
+          updatedAt: typeof task.updatedAt === 'string' ? task.updatedAt : new Date(task.updatedAt).toISOString(),
+          subtasks: (task.subtasks || []).map((s: any) => ({
+            ...s,
+            createdAt: typeof s.createdAt === 'string' ? s.createdAt : new Date(s.createdAt).toISOString(),
+            updatedAt: typeof s.updatedAt === 'string' ? s.updatedAt : new Date(s.updatedAt).toISOString(),
+          })),
+        }))
+        setTasks(refreshedTasks)
+        setLastRefresh(new Date())
+      }
+    } catch (error) {
+      console.error('Refresh failed:', error)
+    }
+  }
+
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Stats Bar with refresh indicator */}
@@ -394,6 +417,7 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
         defaultStatus={defaultStatus}
         onSave={handleSaveTask}
         onDelete={handleDeleteTask}
+        onSubtaskChange={refreshTasks}
       />
     </div>
   )

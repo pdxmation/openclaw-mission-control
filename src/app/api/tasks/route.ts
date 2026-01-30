@@ -57,6 +57,9 @@ export async function GET(request: NextRequest) {
           include: {
             label: true
           }
+        },
+        subtasks: {
+          orderBy: { position: 'asc' }
         }
       },
       orderBy: [
@@ -158,6 +161,9 @@ export async function POST(request: NextRequest) {
           include: {
             label: true
           }
+        },
+        subtasks: {
+          orderBy: { position: 'asc' }
         }
       }
     })

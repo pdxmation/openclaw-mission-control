@@ -148,6 +148,7 @@ model Task {
   projectId   String?
   project     Project?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
   labels      TaskLabel[]
+  subtasks    Subtask[]
   
   // Status-specific fields
   startedAt   DateTime?
@@ -175,6 +176,20 @@ model Task {
   @@index([assigneeId])
   @@index([projectId])
   @@map("task")
+}
+
+model Subtask {
+  id        String   @id @default(cuid())
+  title     String
+  completed Boolean  @default(false)
+  position  Int      @default(0)
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([taskId])
+  @@map("subtask")
 }
 
 model ActivityLog {

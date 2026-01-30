@@ -52,6 +52,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           include: {
             label: true
           }
+        },
+        subtasks: {
+          orderBy: { position: 'asc' }
         }
       }
     })
@@ -148,6 +151,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
           include: {
             label: true
           }
+        },
+        subtasks: {
+          orderBy: { position: 'asc' }
         }
       }
     })
