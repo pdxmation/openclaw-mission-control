@@ -139,7 +139,8 @@ export async function POST(request: NextRequest) {
         outcome: body.outcome,
         blocker: body.blocker,
         need: body.need,
-        notes: body.notes
+        notes: body.notes,
+        dueDate: body.dueDate ? new Date(body.dueDate) : null
       },
       include: {
         assignee: {

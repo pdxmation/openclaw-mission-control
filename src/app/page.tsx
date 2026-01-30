@@ -68,6 +68,7 @@ export default async function MissionControl() {
     ...task,
     createdAt: task.createdAt.toISOString(),
     updatedAt: task.updatedAt.toISOString(),
+    dueDate: task.dueDate ? task.dueDate.toISOString() : null,
     subtasks: task.subtasks.map(subtask => ({
       ...subtask,
       createdAt: subtask.createdAt.toISOString(),

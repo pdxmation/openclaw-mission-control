@@ -4,12 +4,42 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { TaskWithRelations } from './types'
 import { Badge } from '@/components/ui/badge'
-import { formatDistanceToNow } from 'date-fns'
-import { CheckSquare } from 'lucide-react'
+import { formatDistanceToNow, isBefore, isToday, addDays, startOfDay } from 'date-fns'
+import { CheckSquare, CalendarIcon } from 'lucide-react'
 
 interface TaskCardProps {
   task: TaskWithRelations
   onClick?: () => void
+}
+
+function getDueDateStatus(dueDate: Date): { color: string; label: string } {
+  const now = startOfDay(new Date())
+  const due = startOfDay(dueDate)
+  const threeDaysFromNow = addDays(now, 3)
+
+  if (isBefore(due, now)) {
+    return { color: 'bg-red-500/20 text-red-400 border-red-500/30', label: 'Overdue' }
+  }
+  if (isToday(dueDate)) {
+    return { color: 'bg-orange-500/20 text-orange-400 border-orange-500/30', label: 'Today' }
+  }
+  if (isBefore(due, threeDaysFromNow)) {
+    return { color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', label: 'Soon' }
+  }
+  return { color: 'bg-slate-500/20 text-slate-400 border-slate-500/30', label: '' }
+}
+
+function formatDueDate(dueDate: Date): string {
+  const now = startOfDay(new Date())
+  const due = startOfDay(dueDate)
+
+  if (isToday(dueDate)) {
+    return 'Today'
+  }
+  if (isBefore(due, now)) {
+    return formatDistanceToNow(dueDate, { addSuffix: true })
+  }
+  return formatDistanceToNow(dueDate, { addSuffix: true })
 }
 
 export function TaskCard({ task, onClick }: TaskCardProps) {
@@ -31,6 +61,8 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
   const timeAgo = formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })
   const completedCount = task.subtasks?.filter((s) => s.completed).length ?? 0
   const totalCount = task.subtasks?.length ?? 0
+  const dueDate = task.dueDate ? new Date(task.dueDate) : null
+  const dueDateStatus = dueDate ? getDueDateStatus(dueDate) : null
 
   return (
     <div
@@ -84,6 +116,16 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
           </div>
           <span className="text-xs text-muted-foreground">
             {completedCount}/{totalCount}
+          </span>
+        </div>
+      )}
+
+      {/* Due Date Badge */}
+      {dueDate && dueDateStatus && (
+        <div className="mb-2">
+          <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border ${dueDateStatus.color}`}>
+            <CalendarIcon className="h-3 w-3" />
+            {formatDueDate(dueDate)}
           </span>
         </div>
       )}

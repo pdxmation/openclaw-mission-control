@@ -44,6 +44,7 @@ export interface TaskWithRelations {
   } | null
   labels: TaskLabel[]
   subtasks: Subtask[]
+  dueDate: string | null
   createdAt: string
   updatedAt: string
 }

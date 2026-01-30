@@ -258,12 +258,18 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
 
   const handleSaveTask = async (data: TaskFormData) => {
     try {
+      // Serialize the data, converting Date to ISO string
+      const payload = {
+        ...data,
+        dueDate: data.dueDate ? data.dueDate.toISOString() : null,
+      }
+      
       if (editingTask) {
         // Update existing task
         const res = await fetch(`/api/tasks/${editingTask.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+          body: JSON.stringify(payload),
         })
         const updated = await res.json()
         setTasks((prev) =>
@@ -276,7 +282,7 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
         const res = await fetch('/api/tasks', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+          body: JSON.stringify(payload),
         })
         const created = await res.json()
         setTasks((prev) => [...prev, { ...created, labels: [], assignee: null, project: null }])

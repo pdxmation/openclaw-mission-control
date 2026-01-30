@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react'
 import { TaskWithRelations, KANBAN_COLUMNS, Subtask } from './types'
 import { TaskStatus, Priority } from './types'
 import { Button } from '@/components/ui/button'
-import { X, Plus, Check, Square } from 'lucide-react'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { X, Plus, Check, Square, CalendarIcon } from 'lucide-react'
+import { format } from 'date-fns'
 
 interface TaskModalProps {
   task?: TaskWithRelations | null
@@ -22,6 +25,7 @@ export interface TaskFormData {
   status: TaskStatus
   priority: Priority
   isRecurring: boolean
+  dueDate: Date | null
 }
 
 export function TaskModal({
@@ -39,8 +43,10 @@ export function TaskModal({
     status: defaultStatus,
     priority: 'MEDIUM',
     isRecurring: false,
+    dueDate: null,
   })
   const [loading, setLoading] = useState(false)
+  const [calendarOpen, setCalendarOpen] = useState(false)
 
   const [subtasks, setSubtasks] = useState<Subtask[]>([])
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
@@ -54,6 +60,7 @@ export function TaskModal({
         status: task.status,
         priority: task.priority,
         isRecurring: task.isRecurring,
+        dueDate: task.dueDate ? new Date(task.dueDate) : null,
       })
       setSubtasks(task.subtasks || [])
     } else {
@@ -63,6 +70,7 @@ export function TaskModal({
         status: defaultStatus,
         priority: 'MEDIUM',
         isRecurring: false,
+        dueDate: null,
       })
       setSubtasks([])
     }
@@ -308,6 +316,49 @@ export function TaskModal({
               </div>
             </div>
           )}
+
+          {/* Due Date */}
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Due Date</label>
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal h-11 sm:h-10"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.dueDate ? (
+                    format(formData.dueDate, 'PPP')
+                  ) : (
+                    <span className="text-muted-foreground">Pick a date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.dueDate || undefined}
+                  onSelect={(date) => {
+                    setFormData({ ...formData, dueDate: date || null })
+                    setCalendarOpen(false)
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+            {formData.dueDate && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="mt-1 text-muted-foreground"
+                onClick={() => setFormData({ ...formData, dueDate: null })}
+              >
+                <X className="h-3 w-3 mr-1" />
+                Clear due date
+              </Button>
+            )}
+          </div>
 
           {/* Recurring Toggle */}
           <div className="flex items-center gap-2">
