@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { TaskWithRelations, KANBAN_COLUMNS, Subtask } from './types'
 import { TaskStatus, Priority } from './types'
 import { Button } from '@/components/ui/button'
-import { X, Plus, Check, Square, Trash2 } from 'lucide-react'
+import { X, Plus, Check, Square } from 'lucide-react'
 
 interface TaskModalProps {
   task?: TaskWithRelations | null
@@ -41,8 +41,7 @@ export function TaskModal({
     isRecurring: false,
   })
   const [loading, setLoading] = useState(false)
-  
-  // Subtasks state
+
   const [subtasks, setSubtasks] = useState<Subtask[]>([])
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [subtaskLoading, setSubtaskLoading] = useState(false)
@@ -86,7 +85,7 @@ export function TaskModal({
   const handleDelete = async () => {
     if (!task || !onDelete) return
     if (!confirm('Are you sure you want to delete this task?')) return
-    
+
     setLoading(true)
     try {
       await onDelete(task.id)
@@ -96,18 +95,17 @@ export function TaskModal({
     }
   }
 
-  // Subtask handlers
   const handleAddSubtask = async () => {
     if (!task || !newSubtaskTitle.trim()) return
-    
+
     setSubtaskLoading(true)
     try {
       const response = await fetch(`/api/tasks/${task.id}/subtasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newSubtaskTitle.trim() })
+        body: JSON.stringify({ title: newSubtaskTitle.trim() }),
       })
-      
+
       if (response.ok) {
         const newSubtask = await response.json()
         setSubtasks([...subtasks, newSubtask])
@@ -126,12 +124,12 @@ export function TaskModal({
       const response = await fetch(`/api/subtasks/${subtask.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ completed: !subtask.completed })
+        body: JSON.stringify({ completed: !subtask.completed }),
       })
-      
+
       if (response.ok) {
         const updated = await response.json()
-        setSubtasks(subtasks.map(s => s.id === updated.id ? updated : s))
+        setSubtasks(subtasks.map((s) => (s.id === updated.id ? updated : s)))
         onSubtaskChange?.()
       }
     } catch (error) {
@@ -142,11 +140,11 @@ export function TaskModal({
   const handleDeleteSubtask = async (subtaskId: string) => {
     try {
       const response = await fetch(`/api/subtasks/${subtaskId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
-      
+
       if (response.ok) {
-        setSubtasks(subtasks.filter(s => s.id !== subtaskId))
+        setSubtasks(subtasks.filter((s) => s.id !== subtaskId))
         onSubtaskChange?.()
       }
     } catch (error) {
@@ -154,24 +152,19 @@ export function TaskModal({
     }
   }
 
-  const completedCount = subtasks.filter(s => s.completed).length
+  const completedCount = subtasks.filter((s) => s.completed).length
   const totalCount = subtasks.length
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+
       {/* Modal */}
       <div className="relative bg-card border border-border rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-lg sm:mx-4 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
-          <h2 className="text-lg font-semibold">
-            {task ? 'Edit Task' : 'New Task'}
-          </h2>
+          <h2 className="text-lg font-semibold">{task ? 'Edit Task' : 'New Task'}</h2>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
@@ -241,7 +234,7 @@ export function TaskModal({
             </div>
           </div>
 
-          {/* Subtasks Section - only show for existing tasks */}
+          {/* Subtasks Section */}
           {task && (
             <div>
               <label className="block text-sm font-medium mb-1.5">
@@ -252,8 +245,7 @@ export function TaskModal({
                   </span>
                 )}
               </label>
-              
-              {/* Subtask list */}
+
               <div className="space-y-1 mb-2">
                 {subtasks.map((subtask) => (
                   <div
@@ -283,13 +275,12 @@ export function TaskModal({
                       onClick={() => handleDeleteSubtask(subtask.id)}
                       className="flex-shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 ))}
               </div>
-              
-              {/* Add subtask input */}
+
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -335,12 +326,7 @@ export function TaskModal({
           {/* Actions */}
           <div className="flex items-center justify-between pt-4 border-t border-border">
             {task && onDelete ? (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={loading}
-              >
+              <Button type="button" variant="destructive" onClick={handleDelete} disabled={loading}>
                 Delete
               </Button>
             ) : (

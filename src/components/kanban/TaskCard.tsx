@@ -29,6 +29,8 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
   }
 
   const timeAgo = formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })
+  const completedCount = task.subtasks?.filter((s) => s.completed).length ?? 0
+  const totalCount = task.subtasks?.length ?? 0
 
   return (
     <div
@@ -37,11 +39,13 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className={`
+      className={
+        `
         relative bg-card border border-border rounded-lg p-3 cursor-grab active:cursor-grabbing
         hover:border-primary/50 transition-colors shadow-sm touch-manipulation
         ${isDragging ? 'ring-2 ring-primary' : ''}
-      `}
+      `
+      }
     >
       {/* Labels */}
       {task.labels && task.labels.length > 0 && (
@@ -69,19 +73,17 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
       )}
 
       {/* Subtasks progress */}
-      {task.subtasks && task.subtasks.length > 0 && (
+      {totalCount > 0 && (
         <div className="flex items-center gap-1.5 mb-2">
           <CheckSquare className="h-3.5 w-3.5 text-muted-foreground" />
           <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-green-500 transition-all duration-300"
-              style={{ 
-                width: `${(task.subtasks.filter(s => s.completed).length / task.subtasks.length) * 100}%` 
-              }}
+              style={{ width: `${(completedCount / totalCount) * 100}%` }}
             />
           </div>
           <span className="text-xs text-muted-foreground">
-            {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
+            {completedCount}/{totalCount}
           </span>
         </div>
       )}
