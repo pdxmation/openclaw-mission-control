@@ -152,9 +152,41 @@ curl "https://moltmc.app/api/documents?type=research" \
 | `npm run start` | Start production server |
 | `npm run db:generate` | Generate Prisma client |
 | `npm run db:push` | Push schema to DB |
-| `npm run db:migrate` | Create migration |
+| `npm run db:backup` | Create database backup |
+| `npm run db:migrate` | **Backup + migrate** (dev) |
+| `npm run db:migrate:deploy` | **Backup + migrate** (prod) |
 | `npm run db:seed` | Seed initial data |
 | `npm run db:studio` | Open Prisma Studio GUI |
+
+## Database Backup & Restore
+
+### Automatic Backups
+
+Backups run **automatically before every migration** (`db:migrate` and `db:migrate:deploy`). No manual intervention needed.
+
+### Manual Backup
+
+```bash
+npm run db:backup
+# or
+./scripts/backup.sh
+```
+
+Backups are saved to `backups/backup-YYYYMMDD-HHMMSS.sql.gz` (compressed, ~10x smaller).
+
+### Restore from Backup
+
+```bash
+# Load DATABASE_URL from .env
+export $(grep DATABASE_URL .env | xargs)
+
+# Restore (pick your backup file)
+gunzip -c backups/backup-20260615-143022.sql.gz | psql "$DATABASE_URL"
+```
+
+### Backup Retention
+
+Only the last 10 backups are kept automatically. Older backups are cleaned up after each new backup.
 
 ## Clawdbot Integration
 
