@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../lib/prisma'
-import { authorizeRequest, unauthorizedResponse } from '../../../lib/api-auth'
+import { authorizeAndGetUserId, unauthorizedResponse } from '../../../lib/api-auth'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -11,7 +11,8 @@ export const revalidate = 0
  * Query params: ?type=journal|note|concept|research&tag=tagname&search=query
  */
 export async function GET(request: NextRequest) {
-  if (!(await authorizeRequest(request))) {
+  const userId = await authorizeAndGetUserId(request)
+  if (!userId) {
     return unauthorizedResponse()
   }
 
@@ -20,32 +21,33 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type')
     const tag = searchParams.get('tag')
     const search = searchParams.get('search')
-    
-    // Build where clause
-    const where: Record<string, unknown> = {}
-    
+
+    // Build where clause with multi-tenant filter
+    const where: Record<string, unknown> = { userId }
+
     if (type) {
       where.type = type
     }
-    
+
     if (tag) {
       where.tags = { has: tag }
     }
-    
+
     if (search) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
         { content: { contains: search, mode: 'insensitive' } }
       ]
     }
-    
+
     const documents = await prisma.document.findMany({
       where,
       orderBy: { updatedAt: 'desc' }
     })
-    
-    // Get all unique tags for filter UI
+
+    // Get all unique tags for filter UI (scoped to user)
     const allDocs = await prisma.document.findMany({
+      where: { userId },
       select: { tags: true }
     })
     const allTags = [...new Set(allDocs.flatMap(d => d.tags))].sort()
@@ -69,26 +71,28 @@ export async function GET(request: NextRequest) {
  * Create a new document
  */
 export async function POST(request: NextRequest) {
-  if (!(await authorizeRequest(request))) {
+  const userId = await authorizeAndGetUserId(request)
+  if (!userId) {
     return unauthorizedResponse()
   }
 
   try {
     const body = await request.json()
-    
+
     if (!body.title) {
       return NextResponse.json(
         { error: 'Title is required' },
         { status: 400 }
       )
     }
-    
+
     const document = await prisma.document.create({
       data: {
         title: body.title,
         content: body.content || '',
         type: body.type || 'note',
-        tags: body.tags || []
+        tags: body.tags || [],
+        userId, // Multi-tenant: assign to current user
       }
     })
     

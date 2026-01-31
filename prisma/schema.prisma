@@ -8,6 +8,29 @@ datasource db {
 }
 
 // ============================================
+// Enums for SaaS Features
+// ============================================
+
+enum WaitingListStatus {
+  pending
+  approved
+  rejected
+}
+
+enum SubscriptionTier {
+  trial
+  pro
+}
+
+enum SubscriptionStatus {
+  active
+  canceled
+  past_due
+  incomplete
+  trialing
+}
+
+// ============================================
 // Better Auth Tables
 // ============================================
 
@@ -20,11 +43,24 @@ model User {
   avatar        String?   // Avatar URL for Kanban display
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
-  sessions      Session[]
-  accounts      Account[]
-  assignedTasks Task[]    @relation("TaskAssignee")
-  activityLogs  ActivityLog[]
+
+  // SaaS fields
+  isAdmin           Boolean          @default(false) @map("is_admin")
+  subscriptionTier  SubscriptionTier @default(trial) @map("subscription_tier")
+  trialStartDate    DateTime?        @map("trial_start_date")
+  trialEndDate      DateTime?        @map("trial_end_date")
+
+  // Relations
+  sessions           Session[]
+  accounts           Account[]
+  assignedTasks      Task[]             @relation("TaskAssignee")
+  ownedTasks         Task[]             @relation("TaskOwner")
+  activityLogs       ActivityLog[]
+  apiKeys            ApiKey[]
+  projects           Project[]
+  labels             Label[]
+  documents          Document[]
+  stripeSubscription StripeSubscription?
 
   @@map("user")
 }
@@ -102,9 +138,14 @@ model Project {
   color       String   @default("#6366f1") // Default indigo color
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
+  // Multi-tenant ownership
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   tasks       Task[]
 
+  @@index([userId])
   @@map("project")
 }
 
@@ -114,9 +155,14 @@ model Label {
   color     String   @default("#10b981") // Default emerald color
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
+  // Multi-tenant ownership
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   tasks     TaskLabel[]
 
+  @@index([userId])
   @@map("label")
 }
 
@@ -141,7 +187,11 @@ model Task {
   priority    Priority   @default(MEDIUM)
   isRecurring Boolean    @default(false) // For recurring tasks
   position    Int        @default(0) // For ordering within columns
-  
+
+  // Multi-tenant ownership
+  userId      String     @map("user_id")
+  user        User       @relation("TaskOwner", fields: [userId], references: [id], onDelete: Cascade)
+
   // Relations
   assigneeId  String?
   assignee    User?      @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
@@ -149,31 +199,32 @@ model Task {
   project     Project?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
   labels      TaskLabel[]
   subtasks    Subtask[]
-  
+
   // Status-specific fields
   startedAt   DateTime?
   statusNote  String?     // e.g., "Blocked", "Queued", "In Review"
-  
+
   // Due date
   dueDate     DateTime?
-  
+
   // Completion tracking
   completedAt DateTime?
   outcome     String?
-  
+
   // Blocker tracking
   blocker     String?
   need        String?
-  
+
   // General notes
   notes       String?
-  
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   activityLogs ActivityLog[]
-  
+
+  @@index([userId])
   @@index([status])
   @@index([priority])
   @@index([assigneeId])
@@ -227,7 +278,71 @@ model Document {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Multi-tenant ownership
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
   @@index([type])
   @@index([createdAt])
   @@map("document")
+}
+
+// ============================================
+// SaaS / Multi-tenant Tables
+// ============================================
+
+model WaitingList {
+  id             String            @id @default(cuid())
+  email          String            @unique
+  name           String
+  company        String?
+  useCase        String?           @db.Text
+  status         WaitingListStatus @default(pending)
+  approvalToken  String?           @unique @map("approval_token")
+  tokenExpiresAt DateTime?         @map("token_expires_at")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([approvalToken])
+  @@map("waiting_list")
+}
+
+model StripeSubscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique @map("user_id")
+  stripeCustomerId     String             @map("stripe_customer_id")
+  stripeSubscriptionId String             @unique @map("stripe_subscription_id")
+  tier                 String
+  status               SubscriptionStatus @default(active)
+  currentPeriodStart   DateTime           @map("current_period_start")
+  currentPeriodEnd     DateTime           @map("current_period_end")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([stripeCustomerId])
+  @@index([status])
+  @@map("stripe_subscription")
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  name       String    @default("Default")
+  keyPrefix  String    @map("key_prefix")
+  keyHash    String    @unique @map("key_hash")
+  lastUsedAt DateTime? @map("last_used_at")
+  expiresAt  DateTime? @map("expires_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  revokedAt  DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([keyHash])
+  @@index([userId])
+  @@map("api_key")
 }
