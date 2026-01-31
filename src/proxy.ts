@@ -3,34 +3,30 @@ import { NextRequest, NextResponse } from "next/server"
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Bypass auth for testing (set BYPASS_AUTH=true in .env)
-  if (process.env.BYPASS_AUTH === "true") {
-    return NextResponse.next()
-  }
-
   // Public routes that don't require auth
   const publicRoutes = ["/login", "/api/auth"]
-  
-  // Check if current path is public
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname === route || pathname.startsWith(route + "/")
-  )
 
-  // API routes with token auth (task API, documents API, and admin API)
-  if (pathname.startsWith("/api/tasks") || pathname.startsWith("/api/documents") || pathname.startsWith("/api/admin") || pathname.startsWith("/api/activity")) {
-    // Keep existing token-based auth for API
-    return NextResponse.next()
-  }
+  // Check if current path is public
+  const isPublicRoute = publicRoutes.some(
+    (route) => pathname === route || pathname.startsWith(route + "/")
+  )
 
   if (isPublicRoute) {
     return NextResponse.next()
   }
 
-  // Check for session cookie
+  // API routes handle their own auth via authorizeRequest()
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.next()
+  }
+
+  // Check for session cookie (presence only - validation happens in API routes)
+  // Note: We only check cookie existence here because middleware runs in Edge runtime
+  // where Prisma/database access is not available. Actual session validation against
+  // the database occurs in API routes via authorizeRequest() in Node.js runtime.
   const sessionCookie = request.cookies.get("better-auth.session_token")
 
   if (!sessionCookie) {
-    // Redirect to login
     const loginUrl = new URL("/login", request.url)
     loginUrl.searchParams.set("callbackUrl", pathname)
     return NextResponse.redirect(loginUrl)
