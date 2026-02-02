@@ -8,16 +8,16 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "pnpm prisma generate && next build",
+    "build": "npx prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "db:generate": "pnpm prisma generate",
-    "db:push": "pnpm prisma db push",
+    "db:generate": "npx prisma generate",
+    "db:push": "npx prisma db push",
     "db:backup": "./scripts/backup.sh",
-    "db:migrate": "pnpm run db:backup && pnpm prisma migrate dev",
-    "db:migrate:deploy": "pnpm run db:backup && pnpm prisma migrate deploy",
-    "db:seed": "pnpm tsx prisma/seed.ts",
-    "db:studio": "pnpm prisma studio",
+    "db:migrate": "pnpm run db:backup && npx prisma migrate dev",
+    "db:migrate:deploy": "pnpm run db:backup && npx prisma migrate deploy",
+    "db:seed": "npx tsx prisma/seed.ts",
+    "db:studio": "npx prisma studio",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",
@@ -71,6 +71,6 @@
     "typescript": "^5"
   },
   "prisma": {
-    "seed": "pnpm tsx prisma/seed.ts"
+    "seed": "npx tsx prisma/seed.ts"
   }
 }
