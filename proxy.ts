@@ -5,6 +5,7 @@ export async function proxy(request: NextRequest) {
 
   // Public routes that don't require auth
   const publicRoutes = [
+    "/", // Root - handles its own redirect logic in app/page.tsx
     "/home",
     "/pricing",
     "/waitlist",
