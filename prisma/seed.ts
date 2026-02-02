@@ -49,10 +49,31 @@ function parseDate(dateStr: string): Date {
 
 async function main() {
   console.log('🌱 Seeding database...')
-  
-  // Clear existing data
-  await prisma.task.deleteMany()
-  
+
+  // Get or create a seed user
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com'
+  let seedUser = await prisma.user.findUnique({
+    where: { email: adminEmail }
+  })
+
+  if (!seedUser) {
+    seedUser = await prisma.user.create({
+      data: {
+        name: 'Admin',
+        email: adminEmail,
+        emailVerified: true,
+        isAdmin: true,
+        subscriptionTier: 'pro',
+      }
+    })
+    console.log(`✅ Created seed user: ${seedUser.email}`)
+  }
+
+  // Clear existing tasks for this user
+  await prisma.task.deleteMany({
+    where: { userId: seedUser.id }
+  })
+
   // Seed in progress tasks
   for (const item of seedData.inProgress) {
     await prisma.task.create({
@@ -62,11 +83,12 @@ async function main() {
         priority: 'MEDIUM',
         startedAt: parseDate(item.started),
         statusNote: item.status,
-        notes: item.notes
+        notes: item.notes,
+        userId: seedUser.id,
       }
     })
   }
-  
+
   // Seed backlog tasks
   for (const item of seedData.backlog) {
     await prisma.task.create({
@@ -74,11 +96,12 @@ async function main() {
         title: item.task,
         status: 'BACKLOG',
         priority: parsePriority(item.priority),
-        notes: item.notes
+        notes: item.notes,
+        userId: seedUser.id,
       }
     })
   }
-  
+
   // Seed completed tasks
   for (const item of seedData.completed) {
     await prisma.task.create({
@@ -87,11 +110,12 @@ async function main() {
         status: 'COMPLETED',
         priority: 'MEDIUM',
         completedAt: parseDate(item.completed),
-        outcome: item.outcome
+        outcome: item.outcome,
+        userId: seedUser.id,
       }
     })
   }
-  
+
   // Seed blocked tasks
   for (const item of seedData.blocked) {
     await prisma.task.create({
@@ -100,11 +124,12 @@ async function main() {
         status: 'BLOCKED',
         priority: 'MEDIUM',
         blocker: item.blocker,
-        need: item.need
+        need: item.need,
+        userId: seedUser.id,
       }
     })
   }
-  
+
   const count = await prisma.task.count()
   console.log(`✅ Seeded ${count} tasks`)
 }

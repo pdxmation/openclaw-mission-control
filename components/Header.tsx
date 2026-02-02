@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutGrid, FileText, Users, Menu, X } from 'lucide-react'
+import { LayoutGrid, FileText, Users, Menu, X, Settings } from 'lucide-react'
 import { useState } from 'react'
+import { authClient } from '@/lib/auth-client'
 
 const navItems = [
-  { href: '/', label: 'Tasks', icon: LayoutGrid },
+  { href: '/tasks', label: 'Tasks', icon: LayoutGrid },
   { href: '/docs', label: 'Docs', icon: FileText },
   { href: '/people', label: 'People', icon: Users },
 ]
@@ -63,8 +64,22 @@ export function Header() {
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
-          {/* Right side spacer (desktop only) */}
-          <div className="w-32 hidden md:block" />
+          {/* Right side actions */}
+          <div className="hidden md:flex items-center gap-2">
+            <Link
+              href="/settings"
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              title="Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </Link>
+            <button
+              onClick={() => authClient.signOut().then(() => window.location.href = '/login')}
+              className="px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
@@ -81,8 +96,8 @@ export function Header() {
                   className={`
                     flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium
                     transition-colors touch-manipulation
-                    ${isActive 
-                      ? 'bg-primary text-primary-foreground' 
+                    ${isActive
+                      ? 'bg-primary text-primary-foreground'
                       : 'text-muted-foreground hover:text-foreground hover:bg-accent'}
                   `}
                 >
@@ -91,6 +106,24 @@ export function Header() {
                 </Link>
               )
             })}
+            <hr className="my-2 border-border" />
+            <Link
+              href="/settings"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors touch-manipulation"
+            >
+              <Settings className="h-5 w-5" />
+              Settings
+            </Link>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false)
+                authClient.signOut().then(() => window.location.href = '/login')
+              }}
+              className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors touch-manipulation w-full text-left"
+            >
+              Sign out
+            </button>
           </nav>
         )}
       </div>

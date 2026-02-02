@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
-import { authorizeRequest, unauthorizedResponse } from '../../../../lib/api-auth'
+import { authorizeAndGetUserId, unauthorizedResponse } from '../../../../lib/api-auth'
 import { embedTask, deleteTaskEmbedding } from '../../../../lib/embeddings'
 
 interface RouteParams {
@@ -12,15 +12,16 @@ interface RouteParams {
  * Fetch a single task by ID
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
-  if (!(await authorizeRequest(request))) {
+  const userId = await authorizeAndGetUserId(request)
+  if (!userId) {
     return unauthorizedResponse()
   }
 
   try {
     const { id } = await params
-    
-    const task = await prisma.task.findUnique({
-      where: { id },
+
+    const task = await prisma.task.findFirst({
+      where: { id, userId }, // Multi-tenant filter
       include: {
         assignee: {
           select: {
@@ -70,16 +71,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * Update a task
  */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
-  if (!(await authorizeRequest(request))) {
+  const userId = await authorizeAndGetUserId(request)
+  if (!userId) {
     return unauthorizedResponse()
   }
 
   try {
     const { id } = await params
     const body = await request.json()
-    
-    // Get current task for activity logging
-    const currentTask = await prisma.task.findUnique({ where: { id } })
+
+    // Get current task for activity logging (with user scoping)
+    const currentTask = await prisma.task.findFirst({ where: { id, userId } })
     if (!currentTask) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 })
     }
@@ -199,16 +201,20 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
  * Delete a task
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
-  if (!(await authorizeRequest(request))) {
+  const userId = await authorizeAndGetUserId(request)
+  if (!userId) {
     return unauthorizedResponse()
   }
 
   try {
     const { id } = await params
-    
-    // Get task info for activity log
-    const task = await prisma.task.findUnique({ where: { id } })
-    
+
+    // Get task info for activity log (with user scoping)
+    const task = await prisma.task.findFirst({ where: { id, userId } })
+    if (!task) {
+      return NextResponse.json({ error: 'Task not found' }, { status: 404 })
+    }
+
     await prisma.task.delete({
       where: { id }
     })

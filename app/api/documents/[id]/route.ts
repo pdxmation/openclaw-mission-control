@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
-import { authorizeRequest, unauthorizedResponse } from '../../../../lib/api-auth'
+import { authorizeAndGetUserId, unauthorizedResponse } from '../../../../lib/api-auth'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -17,15 +17,16 @@ export async function GET(
   request: NextRequest,
   context: RouteContext
 ) {
-  if (!(await authorizeRequest(request))) {
+  const userId = await authorizeAndGetUserId(request)
+  if (!userId) {
     return unauthorizedResponse()
   }
 
   try {
     const { id } = await context.params
-    
-    const document = await prisma.document.findUnique({
-      where: { id }
+
+    const document = await prisma.document.findFirst({
+      where: { id, userId } // Multi-tenant filter
     })
     
     if (!document) {
@@ -53,26 +54,27 @@ export async function PATCH(
   request: NextRequest,
   context: RouteContext
 ) {
-  if (!(await authorizeRequest(request))) {
+  const userId = await authorizeAndGetUserId(request)
+  if (!userId) {
     return unauthorizedResponse()
   }
 
   try {
     const { id } = await context.params
     const body = await request.json()
-    
-    // Check document exists
-    const existing = await prisma.document.findUnique({
-      where: { id }
+
+    // Check document exists (with user scoping)
+    const existing = await prisma.document.findFirst({
+      where: { id, userId }
     })
-    
+
     if (!existing) {
       return NextResponse.json(
         { error: 'Document not found' },
         { status: 404 }
       )
     }
-    
+
     const document = await prisma.document.update({
       where: { id },
       data: {
@@ -101,18 +103,19 @@ export async function DELETE(
   request: NextRequest,
   context: RouteContext
 ) {
-  if (!(await authorizeRequest(request))) {
+  const userId = await authorizeAndGetUserId(request)
+  if (!userId) {
     return unauthorizedResponse()
   }
 
   try {
     const { id } = await context.params
-    
-    // Check document exists
-    const existing = await prisma.document.findUnique({
-      where: { id }
+
+    // Check document exists (with user scoping)
+    const existing = await prisma.document.findFirst({
+      where: { id, userId }
     })
-    
+
     if (!existing) {
       return NextResponse.json(
         { error: 'Document not found' },

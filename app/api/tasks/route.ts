@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../lib/prisma'
-import { authorizeRequest, unauthorizedResponse } from '../../../lib/api-auth'
+import { authorizeAndGetUserId, unauthorizedResponse } from '../../../lib/api-auth'
 import { embedTask } from '../../../lib/embeddings'
 
 export const dynamic = 'force-dynamic'
@@ -12,16 +12,20 @@ export const revalidate = 0
  * Query params: ?status=IN_PROGRESS|BACKLOG|COMPLETED|BLOCKED
  */
 export async function GET(request: NextRequest) {
-  if (!(await authorizeRequest(request))) {
+  const userId = await authorizeAndGetUserId(request)
+  if (!userId) {
     return unauthorizedResponse()
   }
 
   try {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
-    
-    const where = status ? { status: status as any } : {}
-    
+
+    const where: Record<string, unknown> = { userId } // Multi-tenant filter
+    if (status) {
+      where.status = status
+    }
+
     const tasks = await prisma.task.findMany({
       where,
       include: {
@@ -82,16 +86,17 @@ export async function GET(request: NextRequest) {
  * Create a new task
  */
 export async function POST(request: NextRequest) {
-  if (!(await authorizeRequest(request))) {
+  const userId = await authorizeAndGetUserId(request)
+  if (!userId) {
     return unauthorizedResponse()
   }
 
   try {
     const body = await request.json()
-    
+
     // Get max position for the target status
     const maxPos = await prisma.task.aggregate({
-      where: { status: body.status || 'BACKLOG' },
+      where: { status: body.status || 'BACKLOG', userId },
       _max: { position: true }
     })
     
@@ -117,6 +122,7 @@ export async function POST(request: NextRequest) {
         priority: body.priority || 'MEDIUM',
         isRecurring: body.isRecurring || false,
         position: (maxPos._max.position || 0) + 1,
+        userId, // Multi-tenant: assign to current user
         assigneeId: body.assigneeId,
         projectId: body.projectId,
         startedAt,

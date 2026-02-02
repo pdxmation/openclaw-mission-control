@@ -12,20 +12,20 @@ export default function DocsPage() {
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   // Filters
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<DocumentType | null>(null)
   const [tagFilter, setTagFilter] = useState<string | null>(null)
-  
+
   // UI State
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [editingDoc, setEditingDoc] = useState<Document | null>(null)
-  
+
   // Mobile detection
   const [isMobile, setIsMobile] = useState(false)
-  
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768)
     checkMobile()
@@ -40,10 +40,10 @@ export default function DocsPage() {
       if (typeFilter) params.set('type', typeFilter)
       if (tagFilter) params.set('tag', tagFilter)
       if (search) params.set('search', search)
-      
+
       const res = await fetch(`/api/documents?${params}`)
       if (!res.ok) throw new Error('Failed to fetch documents')
-      
+
       const data = await res.json()
       setDocuments(data.documents)
       setAllTags(data.tags)
@@ -184,7 +184,7 @@ export default function DocsPage() {
               <PanelLeft className="h-4 w-4" />
             )}
           </button>
-          
+
           <div className="flex items-center gap-2">
             {isLoading && (
               <span className="text-xs text-muted-foreground">Loading...</span>
