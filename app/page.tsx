@@ -4,7 +4,8 @@ import { getCurrentSession } from '@/lib/admin/auth'
 export default async function RootPage() {
   const session = await getCurrentSession()
 
-  if (session?.user) {
+  // Check for a valid session with user ID (not just truthy)
+  if (session?.user?.id) {
     // User is logged in - redirect to app
     redirect('/tasks')
   } else {

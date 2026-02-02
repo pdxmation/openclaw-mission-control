@@ -10,7 +10,7 @@ export default async function AuthLayout({
   const session = await getCurrentSession()
 
   // If user is already logged in, redirect to app
-  if (session?.user) {
+  if (session?.user?.id) {
     redirect('/tasks')
   }
 

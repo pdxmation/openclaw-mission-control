@@ -9,7 +9,7 @@ export default async function AppLayout({
 }) {
   const session = await getCurrentSession()
 
-  if (!session?.user) {
+  if (!session?.user?.id) {
     redirect('/login')
   }
 
