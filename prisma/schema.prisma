@@ -218,6 +218,9 @@ model Task {
   // General notes
   notes       String?
 
+  // Source tracking for agent separation
+  source    String?   // e.g., "agent-main", "agent-worker-1"
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -229,6 +232,8 @@ model Task {
   @@index([priority])
   @@index([assigneeId])
   @@index([projectId])
+  @@index([userId, source])
+  @@index([userId, title, source, status])
   @@map("task")
 }
 

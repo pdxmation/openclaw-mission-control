@@ -51,6 +51,7 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
   // Filters
   const [selectedAssignee, setSelectedAssignee] = useState<string | null>(null)
   const [selectedProject, setSelectedProject] = useState<string | null>(null)
+  const [selectedSource, setSelectedSource] = useState<string | null>(null)
   
   // Track if drag is in progress to prevent refresh during drag
   const isDragging = useRef(false)
@@ -136,14 +137,26 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
       }))
   }, [tasks, projects])
 
+  // Extract unique sources from tasks
+  const sourceOptions = useMemo(() => {
+    const seen = new Set<string>()
+    return tasks
+      .filter((t) => t.source && !seen.has(t.source) && seen.add(t.source))
+      .map((t) => ({
+        id: t.source!,
+        name: t.source!,
+      }))
+  }, [tasks])
+
   // Filter tasks
   const filteredTasks = useMemo(() => {
     return tasks.filter((t) => {
       if (selectedAssignee && t.assigneeId !== selectedAssignee) return false
       if (selectedProject && t.projectId !== selectedProject) return false
+      if (selectedSource && t.source !== selectedSource) return false
       return true
     })
-  }, [tasks, selectedAssignee, selectedProject])
+  }, [tasks, selectedAssignee, selectedProject, selectedSource])
 
   const getTasksByStatus = useCallback(
     (status: TaskStatus) => {
@@ -388,10 +401,13 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
         <FilterBar
           assignees={assigneeOptions}
           projects={projectOptions}
+          sources={sourceOptions}
           selectedAssignee={selectedAssignee}
           selectedProject={selectedProject}
+          selectedSource={selectedSource}
           onAssigneeChange={setSelectedAssignee}
           onProjectChange={setSelectedProject}
+          onSourceChange={setSelectedSource}
         />
       </div>
 

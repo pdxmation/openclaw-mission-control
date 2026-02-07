@@ -13,10 +13,13 @@ interface FilterOption {
 interface FilterBarProps {
   assignees: FilterOption[]
   projects: FilterOption[]
+  sources: FilterOption[]
   selectedAssignee: string | null
   selectedProject: string | null
+  selectedSource: string | null
   onAssigneeChange: (id: string | null) => void
   onProjectChange: (id: string | null) => void
+  onSourceChange: (id: string | null) => void
 }
 
 function FilterDropdown({
@@ -135,10 +138,13 @@ function FilterDropdown({
 export function FilterBar({
   assignees,
   projects,
+  sources,
   selectedAssignee,
   selectedProject,
+  selectedSource,
   onAssigneeChange,
   onProjectChange,
+  onSourceChange,
 }: FilterBarProps) {
   return (
     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -156,6 +162,12 @@ export function FilterBar({
         selected={selectedProject}
         onChange={onProjectChange}
         showColor
+      />
+      <FilterDropdown
+        label="Source"
+        options={sources}
+        selected={selectedSource}
+        onChange={onSourceChange}
       />
     </div>
   )

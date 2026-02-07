@@ -254,9 +254,34 @@ export default function ApiKeysPage() {
             <p className="text-sm text-muted-foreground mb-2">
               Include your API key in the Authorization header of your requests:
             </p>
-            <code className="block px-3 py-2 bg-background rounded text-sm font-mono">
+            <code className="block px-3 py-2 bg-background rounded text-sm font-mono mb-4">
               Authorization: Bearer mc_your_api_key_here
             </code>
+
+            <h4 className="font-medium mb-2 mt-4">Agent Source Header (Optional)</h4>
+            <p className="text-sm text-muted-foreground mb-2">
+              When multiple agents use the same account, add the{' '}
+              <code className="text-xs">X-Agent-Source</code> header to prevent duplicate tasks:
+            </p>
+            <code className="block px-3 py-2 bg-background rounded text-sm font-mono mb-2">
+              X-Agent-Source: agent-main
+            </code>
+            <p className="text-xs text-muted-foreground">
+              This identifies which agent created each task. Tasks with the same title and source
+              will not be duplicated. The source is displayed in the UI so you can filter by agent.
+            </p>
+
+            <h4 className="font-medium mb-2 mt-4">Example Request</h4>
+            <pre className="block px-3 py-2 bg-background rounded text-xs font-mono overflow-x-auto">
+{`curl -X POST https://moltmc.app/api/tasks \\
+  -H "Authorization: Bearer mc_your_key" \\
+  -H "X-Agent-Source: agent-main" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "title": "Daily email check",
+    "status": "RECURRING"
+  }'`}
+            </pre>
           </div>
         </CardContent>
       </Card>
