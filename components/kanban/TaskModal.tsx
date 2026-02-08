@@ -26,6 +26,7 @@ export interface TaskFormData {
   priority: Priority
   isRecurring: boolean
   dueDate: Date | null
+  source: string | null
 }
 
 export function TaskModal({
@@ -44,6 +45,7 @@ export function TaskModal({
     priority: 'MEDIUM',
     isRecurring: false,
     dueDate: null,
+    source: null,
   })
   const [loading, setLoading] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
@@ -61,6 +63,7 @@ export function TaskModal({
         priority: task.priority,
         isRecurring: task.isRecurring,
         dueDate: task.dueDate ? new Date(task.dueDate) : null,
+        source: task.source,
       })
       setSubtasks(task.subtasks || [])
     } else {
@@ -71,6 +74,7 @@ export function TaskModal({
         priority: 'MEDIUM',
         isRecurring: false,
         dueDate: null,
+        source: null,
       })
       setSubtasks([])
     }
@@ -372,6 +376,21 @@ export function TaskModal({
             <label htmlFor="isRecurring" className="text-sm">
               Recurring task
             </label>
+          </div>
+
+          {/* Source (Agent) */}
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Source (Agent)</label>
+            <input
+              type="text"
+              value={formData.source || ''}
+              onChange={(e) => setFormData({ ...formData, source: e.target.value || null })}
+              className="w-full px-3 py-3 sm:py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-base sm:text-sm"
+              placeholder="e.g., agent-main (optional)"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Identifies which agent created this task. Used to prevent duplicates.
+            </p>
           </div>
 
           {/* Actions */}

@@ -29,6 +29,7 @@ export interface TaskWithRelations {
   priority: Priority
   isRecurring: boolean
   position: number
+  source: string | null  // Agent source for separation
   assigneeId: string | null
   assignee: {
     id: string

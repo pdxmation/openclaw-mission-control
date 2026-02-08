@@ -102,6 +102,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (body.outcome !== undefined) updateData.outcome = body.outcome
     if (body.assigneeId !== undefined) updateData.assigneeId = body.assigneeId
     if (body.projectId !== undefined) updateData.projectId = body.projectId
+    if (body.source !== undefined) updateData.source = body.source
     if (body.dueDate !== undefined) {
       updateData.dueDate = body.dueDate ? new Date(body.dueDate) : null
     }

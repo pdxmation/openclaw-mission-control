@@ -79,10 +79,20 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
       `
       }
     >
-      {/* Labels */}
-      {task.labels && task.labels.length > 0 && (
+      {/* Labels & Source */}
+      {(task.labels?.length > 0 || task.source) && (
         <div className="flex flex-wrap gap-1 mb-2">
-          {task.labels.map((tl) => (
+          {/* Source badge */}
+          {task.source && (
+            <span
+              className="px-2 py-0.5 text-xs rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
+              title={`Created by: ${task.source}`}
+            >
+              🤖 {task.source}
+            </span>
+          )}
+          {/* Label badges */}
+          {task.labels?.map((tl) => (
             <span
               key={tl.id}
               className="px-2 py-0.5 text-xs rounded-full text-white"

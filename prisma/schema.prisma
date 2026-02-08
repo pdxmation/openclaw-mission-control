@@ -102,13 +102,30 @@ model Account {
 
 model Verification {
   id         String   @id @default(cuid())
-  identifier String
+  identifier String   @unique
   value      String
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   @@map("verification")
+}
+
+// ============================================
+// Vector Embeddings (pgvector)
+// ============================================
+
+model TaskEmbedding {
+  id        String                   @id
+  taskId    String                   @unique @map("task_id")
+  embedding Unsupported("vector(1536)")?
+  model     String?                  @default("text-embedding-ada-002")
+  createdAt DateTime?                @default(now()) @map("created_at")
+  updatedAt DateTime?                @default(now()) @map("updated_at")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_embedding")
 }
 
 // ============================================
@@ -218,17 +235,23 @@ model Task {
   // General notes
   notes       String?
 
+  // Source tracking for agent separation
+  source    String?   // e.g., "agent-main", "agent-worker-1"
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   activityLogs ActivityLog[]
+  embedding    TaskEmbedding?
 
   @@index([userId])
   @@index([status])
   @@index([priority])
   @@index([assigneeId])
   @@index([projectId])
+  @@index([userId, source])
+  @@index([userId, title, source, status])
   @@map("task")
 }
 

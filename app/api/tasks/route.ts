@@ -8,8 +8,8 @@ export const revalidate = 0
 
 /**
  * GET /api/tasks
- * Fetch all tasks, optionally filtered by status
- * Query params: ?status=IN_PROGRESS|BACKLOG|COMPLETED|BLOCKED
+ * Fetch all tasks, optionally filtered by status and source
+ * Query params: ?status=IN_PROGRESS|BACKLOG|COMPLETED|BLOCKED&source=agent-name
  */
 export async function GET(request: NextRequest) {
   const userId = await authorizeAndGetUserId(request)
@@ -20,10 +20,14 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
+    const source = searchParams.get('source')
 
     const where: Record<string, unknown> = { userId } // Multi-tenant filter
     if (status) {
       where.status = status
+    }
+    if (source) {
+      where.source = source
     }
 
     const tasks = await prisma.task.findMany({
@@ -94,6 +98,31 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
+    // Check for X-Agent-Source header as alternative to body field
+    const headerSource = request.headers.get('X-Agent-Source')
+    const source = headerSource || body.source || null
+
+    // Check for duplicate task with same title + source + status
+    const existingTask = await prisma.task.findFirst({
+      where: {
+        userId,
+        title: body.title,
+        source,
+        status: body.status || 'BACKLOG',
+      }
+    })
+
+    if (existingTask) {
+      return NextResponse.json(
+        { 
+          error: 'Duplicate task',
+          message: `A task with title "${body.title}" already exists for this agent`,
+          existingTaskId: existingTask.id
+        },
+        { status: 409 }
+      )
+    }
+
     // Get max position for the target status
     const maxPos = await prisma.task.aggregate({
       where: { status: body.status || 'BACKLOG', userId },
@@ -123,6 +152,7 @@ export async function POST(request: NextRequest) {
         isRecurring: body.isRecurring || false,
         position: (maxPos._max.position || 0) + 1,
         userId, // Multi-tenant: assign to current user
+        source, // Agent source for separation
         assigneeId: body.assigneeId,
         projectId: body.projectId,
         startedAt,
@@ -165,7 +195,7 @@ export async function POST(request: NextRequest) {
     await prisma.activityLog.create({
       data: {
         action: 'created',
-        details: JSON.stringify({ title: task.title, status: task.status }),
+        details: JSON.stringify({ title: task.title, status: task.status, source: task.source }),
         taskId: task.id,
       }
     })
