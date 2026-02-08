@@ -112,6 +112,23 @@ model Verification {
 }
 
 // ============================================
+// Vector Embeddings (pgvector)
+// ============================================
+
+model TaskEmbedding {
+  id        String                   @id
+  taskId    String                   @unique @map("task_id")
+  embedding Unsupported("vector(1536)")?
+  model     String?                  @default("text-embedding-ada-002")
+  createdAt DateTime?                @default(now()) @map("created_at")
+  updatedAt DateTime?                @default(now()) @map("updated_at")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_embedding")
+}
+
+// ============================================
 // Mission Control Tables
 // ============================================
 
@@ -226,6 +243,7 @@ model Task {
   updatedAt DateTime @updatedAt
 
   activityLogs ActivityLog[]
+  embedding    TaskEmbedding?
 
   @@index([userId])
   @@index([status])
