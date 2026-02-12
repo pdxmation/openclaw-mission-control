@@ -55,3 +55,6 @@ backups/*.sql
 
 # Prisma
 generated/
+
+# OpenCode
+.opencode/
