@@ -38,11 +38,17 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@stripe/stripe-js": "^8.7.0",
     "@tailwindcss/postcss": "^4.1.18",
+    "@tanstack/react-table": "^8.21.3",
+    "@types/node": "^20.19.33",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "better-auth": "^1.4.18",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.4",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "16.1.6",
     "lucide-react": "^0.563.0",
     "next": "16.1.6",
     "openai": "^6.21.0",
@@ -62,13 +68,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@playwright/test": "^1.58.2",
-    "@tanstack/react-table": "^8.21.3",
-    "@types/node": "^20.19.33",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "eslint": "^9.39.2",
-    "eslint-config-next": "16.1.6"
+    "@playwright/test": "^1.58.2"
   },
   "prisma": {
     "seed": "pnpm tsx prisma/seed.ts"
