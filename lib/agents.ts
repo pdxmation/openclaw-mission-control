@@ -157,3 +157,55 @@ export async function fetchAgentActivity(
       }
     })
 }
+
+/**
+ * Fetch 7-day completion stats for each agent (for sparklines)
+ */
+export async function fetchAgentWeeklyStats(
+  userId: string
+): Promise<Record<string, number[]>> {
+  const now = new Date()
+  const sevenDaysAgo = new Date(now)
+  sevenDaysAgo.setDate(now.getDate() - 7)
+  sevenDaysAgo.setHours(0, 0, 0, 0)
+
+  // Fetch completed tasks in last 7 days
+  const completedTasks = await prisma.task.findMany({
+    where: {
+      userId,
+      source: {
+        not: null,
+      },
+      status: TaskStatus.COMPLETED,
+      completedAt: {
+        gte: sevenDaysAgo,
+      },
+    },
+    select: {
+      source: true,
+      completedAt: true,
+    },
+  })
+
+  // Build daily stats for each agent
+  const stats: Record<string, number[]> = {}
+  
+  // Initialize with zeros for all agents
+  Object.keys(AGENTS_CONFIG).forEach((agentId) => {
+    stats[agentId] = [0, 0, 0, 0, 0, 0, 0] // 7 days
+  })
+
+  // Count completions per day per agent
+  completedTasks.forEach((task) => {
+    if (!task.source || !task.completedAt) return
+    
+    const completedDate = new Date(task.completedAt)
+    const dayIndex = Math.floor((completedDate.getTime() - sevenDaysAgo.getTime()) / (1000 * 60 * 60 * 24))
+    
+    if (dayIndex >= 0 && dayIndex < 7 && stats[task.source]) {
+      stats[task.source][dayIndex]++
+    }
+  })
+
+  return stats
+}
