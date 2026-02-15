@@ -16,8 +16,9 @@ import Link from 'next/link'
 import { AgentSparkline } from './AgentSparkline'
 
 interface AgentCardProps {
-  agent: Agent
+  agent?: Agent
   weeklyStats?: number[] // 7-day completion counts
+  isLoading?: boolean
 }
 
 const statusConfig: Record<AgentStatus, { 
@@ -57,7 +58,40 @@ const statusConfig: Record<AgentStatus, {
   },
 }
 
-export function AgentCard({ agent, weeklyStats = [0, 0, 0, 0, 0, 0, 0] }: AgentCardProps) {
+export function AgentCardSkeleton() {
+  return (
+    <div className="relative rounded-xl border bg-muted/50 border-border p-4">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
+          <div className="space-y-2">
+            <div className="h-4 w-24 bg-muted rounded animate-pulse" />
+            <div className="h-3 w-16 bg-muted rounded animate-pulse" />
+          </div>
+        </div>
+        <div className="h-6 w-14 bg-muted rounded-full animate-pulse" />
+      </div>
+      <div className="h-10 bg-muted rounded animate-pulse mb-4" />
+      <div className="grid grid-cols-4 gap-2 mb-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-16 bg-muted rounded-lg animate-pulse" />
+        ))}
+      </div>
+      <div className="h-12 bg-muted rounded animate-pulse mb-4" />
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-9 bg-muted rounded-lg animate-pulse" />
+        <div className="h-9 w-20 bg-muted rounded-lg animate-pulse" />
+        <div className="h-9 w-9 bg-muted rounded-lg animate-pulse" />
+      </div>
+    </div>
+  )
+}
+
+export function AgentCard({ agent, weeklyStats = [0, 0, 0, 0, 0, 0, 0], isLoading }: AgentCardProps) {
+  if (isLoading || !agent) {
+    return <AgentCardSkeleton />
+  }
+  
   const status = statusConfig[agent.status]
   const isActive = agent.status === 'online' || agent.status === 'busy'
   const completionRate = agent.totalTasks > 0 

@@ -1,12 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import useSWR from 'swr'
 import { formatDistanceToNow } from 'date-fns'
 import { Activity, Loader2, CheckCircle, ArrowRight, Plus, Edit, AlertCircle } from 'lucide-react'
 import { AgentActivity } from '@/types/agents'
 
-interface AgentActivityFeedProps {
-  initialActivities?: AgentActivity[]
+interface ActivityData {
+  activities: AgentActivity[]
+  updatedAt: string
+}
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url)
+  if (!res.ok) {
+    throw new Error('Failed to fetch activity')
+  }
+  return res.json()
 }
 
 const actionIcons: Record<string, React.ReactNode> = {
@@ -27,35 +36,18 @@ const actionLabels: Record<string, string> = {
   blocked: 'blocked on',
 }
 
-export function AgentActivityFeed({ initialActivities = [] }: AgentActivityFeedProps) {
-  const [activities, setActivities] = useState<AgentActivity[]>(initialActivities)
-  const [loading, setLoading] = useState(initialActivities.length === 0)
+export function AgentActivityFeed() {
+  const { 
+    data, 
+    error, 
+    isLoading 
+  } = useSWR<ActivityData>('/api/agents/activity?limit=20', fetcher, {
+    refreshInterval: 5000, // Poll every 5 seconds
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+  })
 
-  const fetchActivities = async () => {
-    try {
-      const res = await fetch('/api/agents/activity?limit=20')
-      const data = await res.json()
-      if (data.activities && Array.isArray(data.activities)) {
-        setActivities(data.activities)
-      }
-    } catch (error) {
-      console.error('Failed to fetch agent activity:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    if (initialActivities.length === 0) {
-      fetchActivities()
-    }
-  }, [])
-
-  // Poll for updates every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(fetchActivities, 30000)
-    return () => clearInterval(interval)
-  }, [])
+  const activities = data?.activities || []
 
   return (
     <div className="bg-card border border-border rounded-xl h-full flex flex-col">
@@ -63,14 +55,21 @@ export function AgentActivityFeed({ initialActivities = [] }: AgentActivityFeedP
       <div className="flex items-center gap-2 p-4 border-b border-border">
         <Activity className="h-4 w-4 text-muted-foreground" />
         <h3 className="font-semibold text-sm">Agent Activity</h3>
-        <span className="ml-auto text-xs text-muted-foreground">Last 24h</span>
+        <span className="ml-auto text-xs text-muted-foreground">Live</span>
+        {isLoading && (
+          <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+        )}
       </div>
 
       {/* Activity List */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-2">
-        {loading ? (
+      <div className="flex-1 overflow-y-auto p-2 space-y-2 max-h-[600px]">
+        {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
+          </div>
+        ) : error ? (
+          <div className="text-center py-8 text-red-400 text-sm">
+            Failed to load activity
           </div>
         ) : activities.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground text-sm">
