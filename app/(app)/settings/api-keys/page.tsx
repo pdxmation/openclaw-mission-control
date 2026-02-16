@@ -12,7 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Trash2, Copy, Loader2, Eye, EyeOff } from 'lucide-react'
+import { Plus, Trash2, Copy, Loader2, Eye, EyeOff, FileDown } from 'lucide-react'
 import {
   getApiKeys,
   createApiKey,
@@ -88,6 +88,26 @@ export default function ApiKeysPage() {
   const handleCopy = () => {
     if (newKey) {
       navigator.clipboard.writeText(newKey)
+    }
+  }
+
+  const handleDownloadSkill = async () => {
+    try {
+      const response = await fetch('/SKILL.md')
+      if (!response.ok) throw new Error('Failed to load SKILL.md')
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'SKILL.md'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error downloading SKILL.md:', error)
+      alert('Failed to download SKILL.md. Please try again.')
     }
   }
 
@@ -282,6 +302,23 @@ export default function ApiKeysPage() {
     "status": "RECURRING"
   }'`}
             </pre>
+
+            <div className="mt-6 pt-4 border-t border-border">
+              <h4 className="font-medium mb-2">Bot Integration</h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                Download the SKILL.md file for complete OpenClaw integration documentation,
+                including API reference, best practices, and code examples.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadSkill}
+                className="gap-2"
+              >
+                <FileDown className="h-4 w-4" />
+                Download SKILL.md
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
