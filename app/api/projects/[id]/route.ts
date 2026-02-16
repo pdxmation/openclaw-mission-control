@@ -79,9 +79,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     })
 
     return NextResponse.json(project)
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error updating project:', error)
-    if (error.code === 'P2025') {
+    const errorCode = typeof error === 'object' && error && 'code' in error ? (error as { code: string }).code : undefined
+    if (errorCode === 'P2025') {
       return NextResponse.json(
         { error: 'Project not found' },
         { status: 404 }
@@ -129,9 +130,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     })
 
     return NextResponse.json(project)
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error deleting project:', error)
-    if (error.code === 'P2025') {
+    const errorCode = typeof error === 'object' && error && 'code' in error ? (error as { code: string }).code : undefined
+    if (errorCode === 'P2025') {
       return NextResponse.json(
         { error: 'Project not found' },
         { status: 404 }

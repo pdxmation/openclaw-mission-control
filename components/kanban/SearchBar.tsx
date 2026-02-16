@@ -13,6 +13,17 @@ interface SearchResult {
   similarity: number
 }
 
+interface SearchApiResult {
+  task: {
+    id: string
+    title: string
+    description: string | null
+    status: TaskStatus
+    priority: string
+  }
+  similarity: number
+}
+
 interface SearchBarProps {
   onSelectTask: (taskId: string) => void
 }
@@ -81,7 +92,7 @@ export function SearchBar({ onSelectTask }: SearchBarProps) {
       if (res.ok) {
         const data = await res.json()
         // API returns { results: [{ task, similarity }] }
-        const mappedResults: SearchResult[] = (data.results || []).map((r: any) => ({
+        const mappedResults: SearchResult[] = (data.results || []).map((r: SearchApiResult) => ({
           id: r.task.id,
           title: r.task.title,
           description: r.task.description,
@@ -249,7 +260,7 @@ export function SearchBar({ onSelectTask }: SearchBarProps) {
       {/* No results */}
       {open && query && !loading && results.length === 0 && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-xl z-50 p-4 text-center">
-          <p className="text-sm text-muted-foreground">No tasks found for "{query}"</p>
+          <p className="text-sm text-muted-foreground">No tasks found for &ldquo;{query}&rdquo;</p>
         </div>
       )}
     </div>

@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const action = body.action || 'init-and-backfill'
     
-    const result: any = { success: true, actions: [] }
+    const result: { success: boolean; actions: string[]; backfill?: unknown } = { success: true, actions: [] }
     
     if (action === 'init' || action === 'init-and-backfill') {
       await ensureVectorStore()
@@ -35,10 +35,10 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json(result)
-  } catch (error: any) {
+  } catch (error) {
     console.error('Vector admin error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to execute vector operation' },
+      { error: error instanceof Error ? error.message : 'Failed to execute vector operation' },
       { status: 500 }
     )
   }
@@ -77,10 +77,10 @@ export async function GET(request: NextRequest) {
       taskCount,
       coverage: taskCount > 0 ? Math.round((Number(result[0].count) / taskCount) * 100) : 0,
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Vector status error:', error)
     return NextResponse.json(
-      { initialized: false, error: error.message },
+      { initialized: false, error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }

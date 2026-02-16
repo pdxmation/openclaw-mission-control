@@ -14,7 +14,7 @@ import {
   DragOverEvent,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
-import { TaskWithRelations, KANBAN_COLUMNS, TaskStatus } from './types'
+import { TaskWithRelations, KANBAN_COLUMNS, TaskStatus, Subtask } from './types'
 import { KanbanColumn } from './KanbanColumn'
 import { TaskCard } from './TaskCard'
 import { TaskModal, TaskFormData } from './TaskModal'
@@ -63,8 +63,11 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
 
   // Set initial refresh time and mounted state on client to avoid hydration mismatch
   useEffect(() => {
-    setIsMounted(true)
-    setLastRefresh(new Date())
+    // Use requestAnimationFrame to avoid synchronous setState during render
+    requestAnimationFrame(() => {
+      setIsMounted(true)
+      setLastRefresh(new Date())
+    })
   }, [])
 
   // Auto-refresh every 60 seconds
@@ -78,7 +81,7 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
         if (res.ok) {
           const data = await res.json()
           // Transform dates to strings for consistency
-          const refreshedTasks: TaskWithRelations[] = data.all.map((task: any) => ({
+          const refreshedTasks: TaskWithRelations[] = data.all.map((task: TaskWithRelations) => ({
             ...task,
             createdAt: typeof task.createdAt === 'string' ? task.createdAt : new Date(task.createdAt).toISOString(),
             updatedAt: typeof task.updatedAt === 'string' ? task.updatedAt : new Date(task.updatedAt).toISOString(),
@@ -335,7 +338,7 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
       const res = await fetch('/api/tasks')
       if (res.ok) {
         const data = await res.json()
-        const refreshedTasks: TaskWithRelations[] = data.all.map((task: any) => ({
+        const refreshedTasks: TaskWithRelations[] = data.all.map((task: TaskWithRelations) => ({
           ...task,
           createdAt: typeof task.createdAt === 'string' ? task.createdAt : new Date(task.createdAt).toISOString(),
           updatedAt: typeof task.updatedAt === 'string' ? task.updatedAt : new Date(task.updatedAt).toISOString(),
@@ -353,11 +356,11 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
       const res = await fetch('/api/tasks')
       if (res.ok) {
         const data = await res.json()
-        const refreshedTasks: TaskWithRelations[] = data.all.map((task: any) => ({
+        const refreshedTasks: TaskWithRelations[] = data.all.map((task: TaskWithRelations) => ({
           ...task,
           createdAt: typeof task.createdAt === 'string' ? task.createdAt : new Date(task.createdAt).toISOString(),
           updatedAt: typeof task.updatedAt === 'string' ? task.updatedAt : new Date(task.updatedAt).toISOString(),
-          subtasks: (task.subtasks || []).map((s: any) => ({
+          subtasks: (task.subtasks || []).map((s: Subtask) => ({
             ...s,
             createdAt: typeof s.createdAt === 'string' ? s.createdAt : new Date(s.createdAt).toISOString(),
             updatedAt: typeof s.updatedAt === 'string' ? s.updatedAt : new Date(s.updatedAt).toISOString(),

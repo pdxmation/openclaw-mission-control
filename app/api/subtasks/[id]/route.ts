@@ -19,7 +19,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const { id } = await params
     const body = await request.json()
     
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     
     if (body.title !== undefined) updateData.title = body.title.trim()
     if (body.completed !== undefined) updateData.completed = body.completed
@@ -31,10 +31,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     })
     
     return NextResponse.json(subtask)
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error updating subtask:', error)
     
-    if (error.code === 'P2025') {
+    const errorCode = typeof error === 'object' && error && 'code' in error ? (error as { code: string }).code : undefined
+    if (errorCode === 'P2025') {
       return NextResponse.json(
         { error: 'Subtask not found' },
         { status: 404 }
@@ -65,10 +66,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     })
     
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error deleting subtask:', error)
     
-    if (error.code === 'P2025') {
+    const errorCode = typeof error === 'object' && error && 'code' in error ? (error as { code: string }).code : undefined
+    if (errorCode === 'P2025') {
       return NextResponse.json(
         { error: 'Subtask not found' },
         { status: 404 }

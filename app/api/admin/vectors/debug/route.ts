@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     return unauthorizedResponse()
   }
 
-  const results: any = {}
+  const results: Record<string, unknown> = {}
 
   // Check if pgvector extension exists
   try {
@@ -21,16 +21,16 @@ export async function GET(request: NextRequest) {
       `SELECT extname FROM pg_extension WHERE extname = 'vector'`
     )
     results.pgvectorInstalled = extensions.length > 0
-  } catch (error: any) {
-    results.pgvectorCheck = error.message
+  } catch (error) {
+    results.pgvectorCheck = error instanceof Error ? error.message : String(error)
   }
 
   // Try to create extension
   try {
     await prisma.$executeRawUnsafe(`CREATE EXTENSION IF NOT EXISTS vector`)
     results.createExtension = 'success'
-  } catch (error: any) {
-    results.createExtension = error.message
+  } catch (error) {
+    results.createExtension = error instanceof Error ? error.message : String(error)
   }
 
   // Check available extensions
@@ -39,8 +39,8 @@ export async function GET(request: NextRequest) {
       `SELECT name FROM pg_available_extensions WHERE name = 'vector'`
     )
     results.vectorAvailable = available.length > 0
-  } catch (error: any) {
-    results.vectorAvailable = error.message
+  } catch (error) {
+    results.vectorAvailable = error instanceof Error ? error.message : String(error)
   }
 
   // Check if table exists
@@ -49,8 +49,8 @@ export async function GET(request: NextRequest) {
       `SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename = 'task_embedding'`
     )
     results.tableExists = tables.length > 0
-  } catch (error: any) {
-    results.tableCheck = error.message
+  } catch (error) {
+    results.tableCheck = error instanceof Error ? error.message : String(error)
   }
 
   // Try to create table
@@ -65,8 +65,8 @@ export async function GET(request: NextRequest) {
     
     // Drop test table
     await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS public.task_embedding_test`)
-  } catch (error: any) {
-    results.createTestTable = error.message
+  } catch (error) {
+    results.createTestTable = error instanceof Error ? error.message : String(error)
   }
 
   // Check current schema
@@ -75,8 +75,8 @@ export async function GET(request: NextRequest) {
       `SELECT current_schema()`
     )
     results.currentSchema = schema[0]?.current_schema
-  } catch (error: any) {
-    results.schemaCheck = error.message
+  } catch (error) {
+    results.schemaCheck = error instanceof Error ? error.message : String(error)
   }
 
   return NextResponse.json(results)
