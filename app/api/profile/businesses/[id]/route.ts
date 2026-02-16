@@ -5,16 +5,17 @@ import { prisma } from "@/lib/prisma";
 // GET /api/profile/businesses/[id] - Get a specific business
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const business = await prisma.business.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id, userId: session.user.id },
       include: {
         goals: {
           orderBy: { createdAt: "desc" },
@@ -39,16 +40,17 @@ export async function GET(
 // PATCH /api/profile/businesses/[id] - Update a business
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const existing = await prisma.business.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id, userId: session.user.id },
     });
 
     if (!existing) {
@@ -67,7 +69,7 @@ export async function PATCH(
     }
 
     const business = await prisma.business.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(name !== undefined && { name }),
         ...(description !== undefined && { description }),
@@ -92,16 +94,17 @@ export async function PATCH(
 // DELETE /api/profile/businesses/[id] - Delete a business
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const existing = await prisma.business.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id, userId: session.user.id },
     });
 
     if (!existing) {
@@ -109,7 +112,7 @@ export async function DELETE(
     }
 
     await prisma.business.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

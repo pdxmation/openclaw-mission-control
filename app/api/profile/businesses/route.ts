@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 // GET /api/profile/businesses - List all businesses for the user
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
 // POST /api/profile/businesses - Create a new business
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
