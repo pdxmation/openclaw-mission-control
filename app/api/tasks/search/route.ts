@@ -72,12 +72,13 @@ export async function GET(request: NextRequest) {
       .filter(r => r.task) // Filter out any missing tasks
     
     return NextResponse.json({ results })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error searching tasks:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return NextResponse.json(
       { 
         error: 'Failed to search tasks',
-        details: error?.message || String(error)
+        details: errorMessage
       },
       { status: 500 }
     )

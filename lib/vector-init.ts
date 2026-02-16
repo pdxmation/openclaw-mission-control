@@ -57,8 +57,9 @@ export async function ensureVectorStore(): Promise<void> {
     `)
     
     console.log('✓ Vector store ready')
-  } catch (error: any) {
+  } catch (error) {
     // Log but don't crash - pgvector might not be available
-    console.warn('Vector store init warning:', error?.message || error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.warn('Vector store init warning:', errorMessage)
   }
 }

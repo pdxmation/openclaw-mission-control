@@ -5,17 +5,22 @@ import { prisma } from "@/lib/prisma";
 // GET /api/profile/businesses/[id]/goals/[goalId] - Get a specific goal
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string; goalId: string } }
+  { params }: {
+    params:
+      | Promise<{ id: string; goalId: string }>
+      | { id: string; goalId: string };
+  }
 ) {
   try {
-    const session = await auth();
+    const { id, goalId } = await params;
+    const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Verify business belongs to user
     const business = await prisma.business.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id, userId: session.user.id },
     });
 
     if (!business) {
@@ -23,7 +28,7 @@ export async function GET(
     }
 
     const goal = await prisma.businessGoal.findFirst({
-      where: { id: params.goalId, businessId: params.id },
+      where: { id: goalId, businessId: id },
     });
 
     if (!goal) {
@@ -43,17 +48,22 @@ export async function GET(
 // PATCH /api/profile/businesses/[id]/goals/[goalId] - Update a goal
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; goalId: string } }
+  { params }: {
+    params:
+      | Promise<{ id: string; goalId: string }>
+      | { id: string; goalId: string };
+  }
 ) {
   try {
-    const session = await auth();
+    const { id, goalId } = await params;
+    const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Verify business belongs to user
     const business = await prisma.business.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id, userId: session.user.id },
     });
 
     if (!business) {
@@ -61,7 +71,7 @@ export async function PATCH(
     }
 
     const existing = await prisma.businessGoal.findFirst({
-      where: { id: params.goalId, businessId: params.id },
+      where: { id: goalId, businessId: id },
     });
 
     if (!existing) {
@@ -72,11 +82,13 @@ export async function PATCH(
     const { title, description, targetDate, status } = body;
 
     const goal = await prisma.businessGoal.update({
-      where: { id: params.goalId },
+      where: { id: goalId },
       data: {
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
-        ...(targetDate !== undefined && { targetDate: targetDate ? new Date(targetDate) : null }),
+        ...(targetDate !== undefined && {
+          targetDate: targetDate ? new Date(targetDate) : null,
+        }),
         ...(status !== undefined && { status }),
       },
     });
@@ -94,17 +106,22 @@ export async function PATCH(
 // DELETE /api/profile/businesses/[id]/goals/[goalId] - Delete a goal
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; goalId: string } }
+  { params }: {
+    params:
+      | Promise<{ id: string; goalId: string }>
+      | { id: string; goalId: string };
+  }
 ) {
   try {
-    const session = await auth();
+    const { id, goalId } = await params;
+    const session = await auth.api.getSession({ headers: req.headers });
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Verify business belongs to user
     const business = await prisma.business.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id, userId: session.user.id },
     });
 
     if (!business) {
@@ -112,7 +129,7 @@ export async function DELETE(
     }
 
     const existing = await prisma.businessGoal.findFirst({
-      where: { id: params.goalId, businessId: params.id },
+      where: { id: goalId, businessId: id },
     });
 
     if (!existing) {
@@ -120,7 +137,7 @@ export async function DELETE(
     }
 
     await prisma.businessGoal.delete({
-      where: { id: params.goalId },
+      where: { id: goalId },
     });
 
     return NextResponse.json({ success: true });

@@ -89,7 +89,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
     
     // Build update data, only include provided fields
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     
     if (body.title !== undefined) updateData.title = body.title
     if (body.description !== undefined) updateData.description = body.description
@@ -159,7 +159,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     
     // Log activity
     let action = 'updated'
-    const details: any = {}
+    const details: Record<string, unknown> = {}
     
     if (body.status && body.status !== currentTask.status) {
       action = 'moved'
@@ -184,10 +184,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
     
     return NextResponse.json(task)
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error updating task:', error)
     
-    if (error.code === 'P2025') {
+    const errorCode = typeof error === 'object' && error && 'code' in error ? (error as { code: string }).code : undefined
+    if (errorCode === 'P2025') {
       return NextResponse.json(
         { error: 'Task not found' },
         { status: 404 }
@@ -239,10 +240,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
     
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error deleting task:', error)
     
-    if (error.code === 'P2025') {
+    const errorCode = typeof error === 'object' && error && 'code' in error ? (error as { code: string }).code : undefined
+    if (errorCode === 'P2025') {
       return NextResponse.json(
         { error: 'Task not found' },
         { status: 404 }
