@@ -61,7 +61,6 @@ model User {
   labels             Label[]
   documents          Document[]
   stripeSubscription StripeSubscription?
-  businesses         Business[]
 
   @@map("user")
 }
@@ -370,53 +369,4 @@ model ApiKey {
   @@index([keyHash])
   @@index([userId])
   @@map("api_key")
-}
-
-// ============================================
-// Profile / Business Management
-// ============================================
-
-enum GoalStatus {
-  NOT_STARTED
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
-
-model Business {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  industry    String?
-  isPrimary   Boolean  @default(false) @map("is_primary")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  // Multi-tenant ownership
-  userId      String   @map("user_id")
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Relations
-  goals       BusinessGoal[]
-
-  @@index([userId])
-  @@map("business")
-}
-
-model BusinessGoal {
-  id          String     @id @default(cuid())
-  title       String
-  description String?
-  targetDate  DateTime?  @map("target_date")
-  status      GoalStatus @default(NOT_STARTED)
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
-
-  // Relation to business
-  businessId  String     @map("business_id")
-  business    Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
-
-  @@index([businessId])
-  @@index([status])
-  @@map("business_goal")
 }
