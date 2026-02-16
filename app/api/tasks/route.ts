@@ -9,7 +9,7 @@ export const revalidate = 0
 /**
  * GET /api/tasks
  * Fetch all tasks, optionally filtered by status and source
- * Query params: ?status=IN_PROGRESS|BACKLOG|COMPLETED|BLOCKED&source=agent-name
+ * Query params: ?status=IN_PROGRESS|BACKLOG|COMPLETED|BLOCKED&source=agent-name&projectId=project-id
  */
 export async function GET(request: NextRequest) {
   const userId = await authorizeAndGetUserId(request)
@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
     const source = searchParams.get('source')
+    const projectId = searchParams.get('projectId')
 
     const where: Record<string, unknown> = { userId } // Multi-tenant filter
     if (status) {
@@ -28,6 +29,9 @@ export async function GET(request: NextRequest) {
     }
     if (source) {
       where.source = source
+    }
+    if (projectId) {
+      where.projectId = projectId
     }
 
     const tasks = await prisma.task.findMany({
@@ -46,6 +50,8 @@ export async function GET(request: NextRequest) {
             id: true,
             name: true,
             color: true,
+            icon: true,
+            status: true,
           }
         },
         labels: {
@@ -178,6 +184,8 @@ export async function POST(request: NextRequest) {
             id: true,
             name: true,
             color: true,
+            icon: true,
+            status: true,
           }
         },
         labels: {

@@ -17,6 +17,7 @@ interface TaskModalProps {
   onSave: (data: TaskFormData) => Promise<void>
   onDelete?: (taskId: string) => Promise<void>
   onSubtaskChange?: () => void
+  projects?: ProjectOption[]
 }
 
 export interface TaskFormData {
@@ -27,6 +28,15 @@ export interface TaskFormData {
   isRecurring: boolean
   dueDate: Date | null
   source: string | null
+  projectId: string | null
+}
+
+interface ProjectOption {
+  id: string
+  name: string
+  color: string
+  icon: string
+  status: 'ACTIVE' | 'ARCHIVED'
 }
 
 export function TaskModal({
@@ -37,6 +47,7 @@ export function TaskModal({
   onSave,
   onDelete,
   onSubtaskChange,
+  projects = [],
 }: TaskModalProps) {
   const [formData, setFormData] = useState<TaskFormData>({
     title: '',
@@ -46,6 +57,7 @@ export function TaskModal({
     isRecurring: false,
     dueDate: null,
     source: null,
+    projectId: null,
   })
   const [loading, setLoading] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
@@ -64,6 +76,7 @@ export function TaskModal({
         isRecurring: task.isRecurring,
         dueDate: task.dueDate ? new Date(task.dueDate) : null,
         source: task.source,
+        projectId: task.projectId,
       })
       setSubtasks(task.subtasks || [])
     } else {
@@ -75,6 +88,7 @@ export function TaskModal({
         isRecurring: false,
         dueDate: null,
         source: null,
+        projectId: null,
       })
       setSubtasks([])
     }
@@ -244,6 +258,27 @@ export function TaskModal({
                 <option value="CRITICAL">Critical</option>
               </select>
             </div>
+          </div>
+
+          {/* Project */}
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Project</label>
+            <select
+              value={formData.projectId || ''}
+              onChange={(e) =>
+                setFormData({ ...formData, projectId: e.target.value || null })
+              }
+              className="w-full px-3 py-3 sm:py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-base sm:text-sm"
+            >
+              <option value="">No project</option>
+              {projects
+                .filter((project) => project.status === 'ACTIVE' || project.id === formData.projectId)
+                .map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.icon} {project.name}
+                  </option>
+                ))}
+            </select>
           </div>
 
           {/* Subtasks Section */}

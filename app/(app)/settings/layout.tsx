@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { Settings, Key, CreditCard } from 'lucide-react'
+import { Settings, Key, CreditCard, User } from 'lucide-react'
 
 const settingsNavItems = [
+  { href: '/settings/profile', label: 'Profile', icon: User },
   { href: '/settings', label: 'General', icon: Settings },
   { href: '/settings/api-keys', label: 'API Keys', icon: Key },
   { href: '/settings/billing', label: 'Billing', icon: CreditCard },
