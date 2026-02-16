@@ -1,6 +1,7 @@
 // Define types locally to avoid importing server-only Prisma client in client components
 export type TaskStatus = 'RECURRING' | 'IN_PROGRESS' | 'BACKLOG' | 'REVIEW' | 'COMPLETED' | 'BLOCKED'
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+export type ProjectStatus = 'ACTIVE' | 'ARCHIVED'
 
 export interface TaskLabel {
   id: string
@@ -42,6 +43,8 @@ export interface TaskWithRelations {
     id: string
     name: string
     color: string
+    icon: string
+    status: ProjectStatus
   } | null
   labels: TaskLabel[]
   subtasks: Subtask[]

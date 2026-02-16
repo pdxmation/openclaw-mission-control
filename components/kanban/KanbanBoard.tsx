@@ -32,6 +32,8 @@ interface Project {
   id: string
   name: string
   color: string
+  icon: string
+  status: 'ACTIVE' | 'ARCHIVED'
 }
 
 interface KanbanBoardProps {
@@ -134,6 +136,8 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
         id: t.project!.id,
         name: t.project!.name,
         color: t.project!.color,
+        icon: t.project!.icon,
+        status: t.project!.status,
       }))
   }, [tasks, projects])
 
@@ -307,7 +311,7 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
           body: JSON.stringify(payload),
         })
         const created = await res.json()
-        setTasks((prev) => [...prev, { ...created, labels: [], assignee: null, project: null }])
+        setTasks((prev) => [...prev, created])
       }
     } catch (error) {
       console.error('Failed to save task:', error)
@@ -480,6 +484,7 @@ export function KanbanBoard({ initialTasks, users = [], projects = [] }: KanbanB
         onSave={handleSaveTask}
         onDelete={handleDeleteTask}
         onSubtaskChange={refreshTasks}
+        projects={projectOptions}
       />
     </div>
   )

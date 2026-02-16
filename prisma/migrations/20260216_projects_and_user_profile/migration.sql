@@ -1,0 +1,33 @@
+-- Migration: Add project status/icon + user profile fields
+-- Created: 2026-02-16
+
+DO $$ BEGIN
+  CREATE TYPE "ProjectStatus" AS ENUM ('ACTIVE', 'ARCHIVED');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+ALTER TABLE "project"
+  ADD COLUMN IF NOT EXISTS "icon" TEXT NOT NULL DEFAULT '📁',
+  ADD COLUMN IF NOT EXISTS "status" "ProjectStatus" NOT NULL DEFAULT 'ACTIVE';
+
+ALTER TABLE "user"
+  ADD COLUMN IF NOT EXISTS "telegram" TEXT,
+  ADD COLUMN IF NOT EXISTS "github" TEXT,
+  ADD COLUMN IF NOT EXISTS "timezone" TEXT,
+  ADD COLUMN IF NOT EXISTS "wakeTime" TEXT,
+  ADD COLUMN IF NOT EXISTS "location" TEXT,
+  ADD COLUMN IF NOT EXISTS "company" TEXT,
+  ADD COLUMN IF NOT EXISTS "companyLegal" TEXT,
+  ADD COLUMN IF NOT EXISTS "product" TEXT,
+  ADD COLUMN IF NOT EXISTS "stage" TEXT,
+  ADD COLUMN IF NOT EXISTS "communicationStyle" TEXT,
+  ADD COLUMN IF NOT EXISTS "workStartTime" TEXT,
+  ADD COLUMN IF NOT EXISTS "workEndTime" TEXT,
+  ADD COLUMN IF NOT EXISTS "preferences" JSONB,
+  ADD COLUMN IF NOT EXISTS "shortTermGoals" TEXT[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS "mediumTermGoals" TEXT[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS "longTermGoals" TEXT[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS "techStack" TEXT[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS "currentFocus" TEXT,
+  ADD COLUMN IF NOT EXISTS "notes" TEXT;

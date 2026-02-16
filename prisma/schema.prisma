@@ -41,6 +41,25 @@ model User {
   emailVerified Boolean   @default(false)
   image         String?
   avatar        String?   // Avatar URL for Kanban display
+  telegram      String?
+  github        String?
+  timezone      String?
+  wakeTime      String?
+  location      String?
+  company       String?
+  companyLegal  String?
+  product       String?
+  stage         String?
+  communicationStyle String?
+  workStartTime String?
+  workEndTime   String?
+  preferences   Json?
+  shortTermGoals  String[] @default([])
+  mediumTermGoals String[] @default([])
+  longTermGoals   String[] @default([])
+  techStack     String[] @default([])
+  currentFocus  String?
+  notes         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -149,11 +168,18 @@ enum Priority {
   CRITICAL
 }
 
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+}
+
 model Project {
   id          String   @id @default(cuid())
   name        String
   description String?
   color       String   @default("#6366f1") // Default indigo color
+  icon        String   @default("📁")
+  status      ProjectStatus @default(ACTIVE)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

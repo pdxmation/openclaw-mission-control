@@ -11,7 +11,7 @@ export const revalidate = 0
 export default async function TasksPage() {
   const user = await requireUser()
 
-  const [tasks, activities] = await Promise.all([
+  const [tasks, activities, projects] = await Promise.all([
     prisma.task.findMany({
       where: {
         userId: user.id, // Multi-tenant filter
@@ -30,6 +30,8 @@ export default async function TasksPage() {
             id: true,
             name: true,
             color: true,
+            icon: true,
+            status: true,
           }
         },
         labels: {
@@ -71,6 +73,19 @@ export default async function TasksPage() {
           }
         }
       }
+    }),
+    prisma.project.findMany({
+      where: {
+        userId: user.id,
+      },
+      orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
+      select: {
+        id: true,
+        name: true,
+        color: true,
+        icon: true,
+        status: true,
+      }
     })
   ])
 
@@ -97,7 +112,7 @@ export default async function TasksPage() {
       <div className="max-w-[1800px] mx-auto px-3 py-4 sm:px-4 sm:py-5 md:px-6 md:py-6 flex gap-4 md:gap-6">
         {/* Kanban Board */}
         <div className="flex-1 min-w-0">
-          <KanbanBoard initialTasks={serializedTasks} />
+          <KanbanBoard initialTasks={serializedTasks} projects={projects} />
         </div>
 
         {/* Activity Feed Sidebar - Desktop only */}
