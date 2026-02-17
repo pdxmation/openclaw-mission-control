@@ -20,7 +20,7 @@ interface ProfileData {
   communicationStyle: string | null
   workStartTime: string | null
   workEndTime: string | null
-  preferences: Record<string, unknown> | null
+  preferences: unknown
   shortTermGoals: string[]
   mediumTermGoals: string[]
   longTermGoals: string[]

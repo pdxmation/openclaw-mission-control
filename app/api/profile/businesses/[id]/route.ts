@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { authorizeAndGetUserId, unauthorizedResponse } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 // GET /api/profile/businesses/[id] - Get a specific business
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await authorizeAndGetUserId(req);
+    if (!userId) {
+      return unauthorizedResponse();
     }
 
+    const { id } = await params;
     const business = await prisma.business.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id, userId: userId },
       include: {
         goals: {
           orderBy: { createdAt: "desc" },
@@ -39,16 +40,17 @@ export async function GET(
 // PATCH /api/profile/businesses/[id] - Update a business
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await authorizeAndGetUserId(req);
+    if (!userId) {
+      return unauthorizedResponse();
     }
 
+    const { id } = await params;
     const existing = await prisma.business.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id, userId: userId },
     });
 
     if (!existing) {
@@ -61,13 +63,13 @@ export async function PATCH(
     // If setting as primary, unset other primary businesses
     if (isPrimary && !existing.isPrimary) {
       await prisma.business.updateMany({
-        where: { userId: session.user.id, isPrimary: true },
+        where: { userId: userId, isPrimary: true },
         data: { isPrimary: false },
       });
     }
 
     const business = await prisma.business.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(name !== undefined && { name }),
         ...(description !== undefined && { description }),
@@ -92,16 +94,17 @@ export async function PATCH(
 // DELETE /api/profile/businesses/[id] - Delete a business
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await authorizeAndGetUserId(req);
+    if (!userId) {
+      return unauthorizedResponse();
     }
 
+    const { id } = await params;
     const existing = await prisma.business.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id, userId: userId },
     });
 
     if (!existing) {
@@ -109,7 +112,7 @@ export async function DELETE(
     }
 
     await prisma.business.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

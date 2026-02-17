@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { authorizeAndGetUserId, unauthorizedResponse } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 // GET /api/profile/businesses - List all businesses for the user
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await authorizeAndGetUserId(req);
+    if (!userId) {
+      return unauthorizedResponse();
     }
 
     const businesses = await prisma.business.findMany({
-      where: { userId: session.user.id },
+      where: { userId: userId },
       include: {
         goals: {
           orderBy: { createdAt: "desc" },
@@ -33,9 +33,9 @@ export async function GET(req: NextRequest) {
 // POST /api/profile/businesses - Create a new business
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await authorizeAndGetUserId(req);
+    if (!userId) {
+      return unauthorizedResponse();
     }
 
     const body = await req.json();
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     // If setting as primary, unset other primary businesses
     if (isPrimary) {
       await prisma.business.updateMany({
-        where: { userId: session.user.id, isPrimary: true },
+        where: { userId: userId, isPrimary: true },
         data: { isPrimary: false },
       });
     }
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
         description,
         industry,
         isPrimary: isPrimary ?? false,
-        userId: session.user.id,
+        userId: userId,
       },
       include: {
         goals: true,

@@ -1,21 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { authorizeAndGetUserId, unauthorizedResponse } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 // GET /api/profile/businesses/[id]/goals - List all goals for a business
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await authorizeAndGetUserId(req);
+    if (!userId) {
+      return unauthorizedResponse();
     }
+
+    const { id } = await params;
 
     // Verify business belongs to user
     const business = await prisma.business.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id, userId: userId },
     });
 
     if (!business) {
@@ -23,7 +25,7 @@ export async function GET(
     }
 
     const goals = await prisma.businessGoal.findMany({
-      where: { businessId: params.id },
+      where: { businessId: id },
       orderBy: { createdAt: "desc" },
     });
 
@@ -40,17 +42,19 @@ export async function GET(
 // POST /api/profile/businesses/[id]/goals - Create a new goal
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await authorizeAndGetUserId(req);
+    if (!userId) {
+      return unauthorizedResponse();
     }
+
+    const { id } = await params;
 
     // Verify business belongs to user
     const business = await prisma.business.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id, userId: userId },
     });
 
     if (!business) {
@@ -73,7 +77,7 @@ export async function POST(
         description,
         targetDate: targetDate ? new Date(targetDate) : null,
         status: status || "NOT_STARTED",
-        businessId: params.id,
+        businessId: id,
       },
     });
 
