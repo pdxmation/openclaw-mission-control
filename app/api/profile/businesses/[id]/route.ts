@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { authorizeAndGetUserId, unauthorizedResponse } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 // GET /api/profile/businesses/[id] - Get a specific business
@@ -8,14 +8,14 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const session = await auth.api.getSession({ headers: req.headers });
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await authorizeAndGetUserId(req);
+    if (!userId) {
+      return unauthorizedResponse();
     }
 
     const { id } = await params;
     const business = await prisma.business.findFirst({
-      where: { id, userId: session.user.id },
+      where: { id, userId: userId },
       include: {
         goals: {
           orderBy: { createdAt: "desc" },
@@ -43,14 +43,14 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const session = await auth.api.getSession({ headers: req.headers });
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await authorizeAndGetUserId(req);
+    if (!userId) {
+      return unauthorizedResponse();
     }
 
     const { id } = await params;
     const existing = await prisma.business.findFirst({
-      where: { id, userId: session.user.id },
+      where: { id, userId: userId },
     });
 
     if (!existing) {
@@ -63,7 +63,7 @@ export async function PATCH(
     // If setting as primary, unset other primary businesses
     if (isPrimary && !existing.isPrimary) {
       await prisma.business.updateMany({
-        where: { userId: session.user.id, isPrimary: true },
+        where: { userId: userId, isPrimary: true },
         data: { isPrimary: false },
       });
     }
@@ -97,14 +97,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const session = await auth.api.getSession({ headers: req.headers });
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await authorizeAndGetUserId(req);
+    if (!userId) {
+      return unauthorizedResponse();
     }
 
     const { id } = await params;
     const existing = await prisma.business.findFirst({
-      where: { id, userId: session.user.id },
+      where: { id, userId: userId },
     });
 
     if (!existing) {

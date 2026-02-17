@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { authorizeAndGetUserId, unauthorizedResponse } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 // GET /api/profile/businesses/[id]/goals - List all goals for a business
@@ -8,15 +8,16 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const { id } = await params;
-    const session = await auth.api.getSession({ headers: req.headers });
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await authorizeAndGetUserId(req);
+    if (!userId) {
+      return unauthorizedResponse();
     }
+
+    const { id } = await params;
 
     // Verify business belongs to user
     const business = await prisma.business.findFirst({
-      where: { id, userId: session.user.id },
+      where: { id, userId: userId },
     });
 
     if (!business) {
@@ -44,15 +45,16 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const { id } = await params;
-    const session = await auth.api.getSession({ headers: req.headers });
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = await authorizeAndGetUserId(req);
+    if (!userId) {
+      return unauthorizedResponse();
     }
+
+    const { id } = await params;
 
     // Verify business belongs to user
     const business = await prisma.business.findFirst({
-      where: { id, userId: session.user.id },
+      where: { id, userId: userId },
     });
 
     if (!business) {
