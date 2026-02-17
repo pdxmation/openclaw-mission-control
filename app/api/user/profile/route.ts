@@ -109,9 +109,10 @@ export async function PATCH(request: NextRequest) {
     })
 
     return NextResponse.json(user)
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error updating profile:', error)
-    if (error.code === 'P2002') {
+    const errorCode = typeof error === 'object' && error && 'code' in error ? (error as { code: string }).code : undefined
+    if (errorCode === 'P2002') {
       return NextResponse.json(
         { error: 'Email already in use' },
         { status: 409 }

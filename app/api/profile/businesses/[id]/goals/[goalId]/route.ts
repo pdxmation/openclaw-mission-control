@@ -5,7 +5,11 @@ import { prisma } from "@/lib/prisma";
 // GET /api/profile/businesses/[id]/goals/[goalId] - Get a specific goal
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string; goalId: string }> }
+  { params }: {
+    params:
+      | Promise<{ id: string; goalId: string }>
+      | { id: string; goalId: string };
+  }
 ) {
   try {
     const userId = await authorizeAndGetUserId(req);
@@ -45,7 +49,11 @@ export async function GET(
 // PATCH /api/profile/businesses/[id]/goals/[goalId] - Update a goal
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string; goalId: string }> }
+  { params }: {
+    params:
+      | Promise<{ id: string; goalId: string }>
+      | { id: string; goalId: string };
+  }
 ) {
   try {
     const userId = await authorizeAndGetUserId(req);
@@ -80,7 +88,9 @@ export async function PATCH(
       data: {
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
-        ...(targetDate !== undefined && { targetDate: targetDate ? new Date(targetDate) : null }),
+        ...(targetDate !== undefined && {
+          targetDate: targetDate ? new Date(targetDate) : null,
+        }),
         ...(status !== undefined && { status }),
       },
     });
@@ -98,7 +108,11 @@ export async function PATCH(
 // DELETE /api/profile/businesses/[id]/goals/[goalId] - Delete a goal
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string; goalId: string }> }
+  { params }: {
+    params:
+      | Promise<{ id: string; goalId: string }>
+      | { id: string; goalId: string };
+  }
 ) {
   try {
     const userId = await authorizeAndGetUserId(req);

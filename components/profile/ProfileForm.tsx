@@ -77,7 +77,7 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
     setError(null)
     setSuccess(null)
 
-    let preferencesValue: Record<string, unknown> | null = null
+    let preferencesValue: unknown = null
     if (formData.preferences.trim()) {
       try {
         preferencesValue = JSON.parse(formData.preferences)

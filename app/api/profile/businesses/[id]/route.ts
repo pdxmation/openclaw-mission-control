@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 // GET /api/profile/businesses/[id] - Get a specific business
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const userId = await authorizeAndGetUserId(req);
@@ -40,7 +40,7 @@ export async function GET(
 // PATCH /api/profile/businesses/[id] - Update a business
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const userId = await authorizeAndGetUserId(req);
@@ -94,7 +94,7 @@ export async function PATCH(
 // DELETE /api/profile/businesses/[id] - Delete a business
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const userId = await authorizeAndGetUserId(req);

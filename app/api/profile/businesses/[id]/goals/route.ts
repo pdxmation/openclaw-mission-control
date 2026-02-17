@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 // GET /api/profile/businesses/[id]/goals - List all goals for a business
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const userId = await authorizeAndGetUserId(req);
@@ -42,7 +42,7 @@ export async function GET(
 // POST /api/profile/businesses/[id]/goals - Create a new goal
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const userId = await authorizeAndGetUserId(req);
