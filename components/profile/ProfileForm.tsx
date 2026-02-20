@@ -119,7 +119,9 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
 
     setLoadingProducts(prev => ({ ...prev, [businessId]: true }))
     try {
-      const res = await fetch(`/api/profile/businesses/${businessId}/products`)
+      const res = await fetch(`/api/profile/businesses/${businessId}/products`, {
+        credentials: 'include'
+      })
       if (res.ok) {
         const data = await res.json()
         setProducts(prev => ({ ...prev, [businessId]: data }))
@@ -142,6 +144,7 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
         const res = await fetch(`/api/profile/businesses/${editingBusiness.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(businessForm),
         })
 
@@ -159,6 +162,7 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
         const res = await fetch('/api/profile/businesses', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(businessForm),
         })
 
@@ -204,6 +208,7 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
     try {
       const res = await fetch(`/api/profile/businesses/${businessId}`, {
         method: 'DELETE',
+        credentials: 'include',
       })
 
       if (!res.ok) {
@@ -241,6 +246,7 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
         const res = await fetch(`/api/profile/products/${editingProduct.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(productForm),
         })
 
@@ -263,6 +269,7 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
         const res = await fetch(`/api/profile/businesses/${currentBusinessId}/products`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(productForm),
         })
 
@@ -319,6 +326,7 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
     try {
       const res = await fetch(`/api/profile/products/${productId}`, {
         method: 'DELETE',
+        credentials: 'include',
       })
 
       if (!res.ok) {
@@ -347,6 +355,7 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
     try {
       const res = await fetch(`/api/profile/products/${productId}/scrape`, {
         method: 'POST',
+        credentials: 'include',
       })
 
       if (!res.ok) {
