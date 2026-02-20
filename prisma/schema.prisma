@@ -105,6 +105,7 @@ model User {
   documents          Document[]
   businesses         Business[]
   stripeSubscription StripeSubscription?
+  freedomScores      FreedomScore[]
 
   @@map("user")
 }
@@ -469,6 +470,32 @@ model Product {
 
   @@index([businessId])
   @@map("product")
+}
+
+model FreedomScore {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  overall   Int      // 0-100 composite score
+  financial Int      // 0-100 (runway)
+  time      Int      // 0-100 (work/life)
+  health    Int      // 0-100 (sleep)
+  systems   Int      // 0-100 (automation)
+  trend     Int      // delta from last week (+/-)
+  
+  // Raw metrics used for calculation
+  runwayMonths        Float    @map("runway_months")
+  hoursWorked         Float    @map("hours_worked")
+  sleepAvg            Float    @map("sleep_avg")
+  aiPrsMerged         Int      @map("ai_prs_merged")
+  automationHours     Float    @map("automation_hours")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@map("freedom_score")
 }
 
 model BusinessGoal {
