@@ -30,8 +30,19 @@ interface ProfileData {
   notes: string | null
 }
 
+interface Business {
+  id: string
+  name: string
+  description: string | null
+  industry: string | null
+  isPrimary: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
 interface ProfileFormProps {
   initialProfile: ProfileData
+  initialBusinesses: Business[]
 }
 
 function listToText(list: string[] | null | undefined) {
@@ -45,7 +56,7 @@ function textToList(text: string) {
     .filter(Boolean)
 }
 
-export function ProfileForm({ initialProfile }: ProfileFormProps) {
+export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormProps) {
   const [formData, setFormData] = useState({
     name: initialProfile.name || '',
     email: initialProfile.email || '',
@@ -73,6 +84,109 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+  // Business management state
+  const [businesses, setBusinesses] = useState<Business[]>(initialBusinesses)
+  const [showBusinessModal, setShowBusinessModal] = useState(false)
+  const [editingBusiness, setEditingBusiness] = useState<Business | null>(null)
+  const [businessForm, setBusinessForm] = useState({
+    name: '',
+    description: '',
+    industry: '',
+    isPrimary: false,
+  })
+  const [businessLoading, setBusinessLoading] = useState(false)
+
+  const handleBusinessSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setBusinessLoading(true)
+    setError(null)
+
+    try {
+      if (editingBusiness) {
+        // Update existing business
+        const res = await fetch(`/api/profile/businesses/${editingBusiness.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(businessForm),
+        })
+
+        if (!res.ok) {
+          const message = await res.json().catch(() => ({ error: 'Update failed' }))
+          setError(message.error || 'Failed to update business')
+          return
+        }
+
+        const updatedBusiness = await res.json()
+        setBusinesses(businesses.map(b => b.id === updatedBusiness.id ? updatedBusiness : b))
+        setSuccess('Business updated successfully')
+      } else {
+        // Create new business
+        const res = await fetch('/api/profile/businesses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(businessForm),
+        })
+
+        if (!res.ok) {
+          const message = await res.json().catch(() => ({ error: 'Create failed' }))
+          setError(message.error || 'Failed to create business')
+          return
+        }
+
+        const newBusiness = await res.json()
+        setBusinesses([newBusiness, ...businesses])
+        setSuccess('Business created successfully')
+      }
+
+      setShowBusinessModal(false)
+      setEditingBusiness(null)
+      setBusinessForm({ name: '', description: '', industry: '', isPrimary: false })
+    } catch (err) {
+      console.error('Business operation failed:', err)
+      setError('Operation failed')
+    } finally {
+      setBusinessLoading(false)
+    }
+  }
+
+  const handleEditBusiness = (business: Business) => {
+    setEditingBusiness(business)
+    setBusinessForm({
+      name: business.name,
+      description: business.description || '',
+      industry: business.industry || '',
+      isPrimary: business.isPrimary,
+    })
+    setShowBusinessModal(true)
+  }
+
+  const handleDeleteBusiness = async (businessId: string) => {
+    if (!confirm('Are you sure you want to delete this business?')) return
+
+    setBusinessLoading(true)
+    setError(null)
+
+    try {
+      const res = await fetch(`/api/profile/businesses/${businessId}`, {
+        method: 'DELETE',
+      })
+
+      if (!res.ok) {
+        const message = await res.json().catch(() => ({ error: 'Delete failed' }))
+        setError(message.error || 'Failed to delete business')
+        return
+      }
+
+      setBusinesses(businesses.filter(b => b.id !== businessId))
+      setSuccess('Business deleted successfully')
+    } catch (err) {
+      console.error('Delete business failed:', err)
+      setError('Delete failed')
+    } finally {
+      setBusinessLoading(false)
+    }
+  }
 
   const handleSave = async () => {
     setSaving(true)
@@ -401,6 +515,149 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>My Businesses</CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setEditingBusiness(null)
+              setBusinessForm({ name: '', description: '', industry: '', isPrimary: false })
+              setShowBusinessModal(true)
+            }}
+          >
+            + Add Business
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {businesses.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No businesses added yet.</p>
+              <p className="text-sm">Add your first business to track goals and activities.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {businesses.map((business) => (
+                <div
+                  key={business.id}
+                  className="flex items-start justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium truncate">{business.name}</h3>
+                      {business.isPrimary && (
+                        <span className="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-full">
+                          Primary
+                        </span>
+                      )}
+                    </div>
+                    {business.industry && (
+                      <p className="text-sm text-muted-foreground">{business.industry}</p>
+                    )}
+                    {business.description && (
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                        {business.description}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 ml-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditBusiness(business)}
+                      disabled={businessLoading}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => handleDeleteBusiness(business.id)}
+                      disabled={businessLoading}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Business Modal */}
+      {showBusinessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-background rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h2 className="text-lg font-semibold mb-4">
+                {editingBusiness ? 'Edit Business' : 'Add Business'}
+              </h2>
+              <form onSubmit={handleBusinessSubmit} className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Name *</label>
+                  <input
+                    type="text"
+                    value={businessForm.name}
+                    onChange={(e) => setBusinessForm({ ...businessForm, name: e.target.value })}
+                    className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+                    placeholder="Business name"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Industry</label>
+                  <input
+                    type="text"
+                    value={businessForm.industry}
+                    onChange={(e) => setBusinessForm({ ...businessForm, industry: e.target.value })}
+                    className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+                    placeholder="e.g., Technology, Retail, Healthcare"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Description</label>
+                  <textarea
+                    value={businessForm.description}
+                    onChange={(e) => setBusinessForm({ ...businessForm, description: e.target.value })}
+                    className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+                    rows={3}
+                    placeholder="Brief description of your business"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="isPrimary"
+                    checked={businessForm.isPrimary}
+                    onChange={(e) => setBusinessForm({ ...businessForm, isPrimary: e.target.checked })}
+                    className="h-4 w-4 rounded border-input"
+                  />
+                  <label htmlFor="isPrimary" className="text-sm font-medium cursor-pointer">
+                    Set as primary business
+                  </label>
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowBusinessModal(false)}
+                    disabled={businessLoading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={businessLoading}>
+                    {businessLoading ? 'Saving...' : editingBusiness ? 'Update' : 'Create'}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
