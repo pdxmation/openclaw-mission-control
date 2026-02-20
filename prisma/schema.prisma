@@ -61,6 +61,29 @@ model User {
   currentFocus  String?
   myMission     String?   @db.Text
   notes         String?
+
+  // Personal
+  children      String?
+  partner       String?
+  pets          String?
+  hobbies       String[]  @default([])
+
+  // Health
+  exerciseRoutine String?
+  sleepTarget   Float?    @default(7.5)
+  healthFocus   String[]  @default([])
+
+  // Business
+  monthlyRevenueTarget Float? @default(0)
+  currentRunway Int?      @default(0)
+  teamSize      Int?      @default(0)
+  keyMetrics    String[]  @default([])
+
+  // Productivity
+  preferredAsyncTools String[] @default([])
+  decisionFatigueTriggers String[] @default([])
+  deepWorkHours String?
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
