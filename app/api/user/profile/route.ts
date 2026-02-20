@@ -25,6 +25,24 @@ const profileSelect = {
   currentFocus: true,
   myMission: true,
   notes: true,
+  // Personal
+  children: true,
+  partner: true,
+  pets: true,
+  hobbies: true,
+  // Health
+  exerciseRoutine: true,
+  sleepTarget: true,
+  healthFocus: true,
+  // Business
+  monthlyRevenueTarget: true,
+  currentRunway: true,
+  teamSize: true,
+  keyMetrics: true,
+  // Productivity
+  preferredAsyncTools: true,
+  decisionFatigueTriggers: true,
+  deepWorkHours: true,
   createdAt: true,
   updatedAt: true,
 }
@@ -95,6 +113,28 @@ export async function PATCH(request: NextRequest) {
     if (body.currentFocus !== undefined) updateData.currentFocus = body.currentFocus
     if (body.myMission !== undefined) updateData.myMission = body.myMission
     if (body.notes !== undefined) updateData.notes = body.notes
+
+    // Personal
+    if (body.children !== undefined) updateData.children = body.children
+    if (body.partner !== undefined) updateData.partner = body.partner
+    if (body.pets !== undefined) updateData.pets = body.pets
+    if (body.hobbies !== undefined) updateData.hobbies = body.hobbies
+
+    // Health
+    if (body.exerciseRoutine !== undefined) updateData.exerciseRoutine = body.exerciseRoutine
+    if (body.sleepTarget !== undefined) updateData.sleepTarget = body.sleepTarget
+    if (body.healthFocus !== undefined) updateData.healthFocus = body.healthFocus
+
+    // Business
+    if (body.monthlyRevenueTarget !== undefined) updateData.monthlyRevenueTarget = body.monthlyRevenueTarget
+    if (body.currentRunway !== undefined) updateData.currentRunway = body.currentRunway
+    if (body.teamSize !== undefined) updateData.teamSize = body.teamSize
+    if (body.keyMetrics !== undefined) updateData.keyMetrics = body.keyMetrics
+
+    // Productivity
+    if (body.preferredAsyncTools !== undefined) updateData.preferredAsyncTools = body.preferredAsyncTools
+    if (body.decisionFatigueTriggers !== undefined) updateData.decisionFatigueTriggers = body.decisionFatigueTriggers
+    if (body.deepWorkHours !== undefined) updateData.deepWorkHours = body.deepWorkHours
 
     const user = await prisma.user.update({
       where: { id: userId },

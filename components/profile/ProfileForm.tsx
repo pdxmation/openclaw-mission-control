@@ -24,6 +24,24 @@ interface ProfileData {
   currentFocus: string | null
   myMission: string | null
   notes: string | null
+  // Personal
+  children: string | null
+  partner: string | null
+  pets: string | null
+  hobbies: string[]
+  // Health
+  exerciseRoutine: string | null
+  sleepTarget: number | null
+  healthFocus: string[]
+  // Business
+  monthlyRevenueTarget: number | null
+  currentRunway: number | null
+  teamSize: number | null
+  keyMetrics: string[]
+  // Productivity
+  preferredAsyncTools: string[]
+  decisionFatigueTriggers: string[]
+  deepWorkHours: string | null
 }
 
 interface Business {
@@ -83,6 +101,24 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
     currentFocus: initialProfile.currentFocus || '',
     myMission: initialProfile.myMission || '',
     notes: initialProfile.notes || '',
+    // Personal
+    children: initialProfile.children || '',
+    partner: initialProfile.partner || '',
+    pets: initialProfile.pets || '',
+    hobbies: listToText(initialProfile.hobbies),
+    // Health
+    exerciseRoutine: initialProfile.exerciseRoutine || '',
+    sleepTarget: initialProfile.sleepTarget?.toString() || '7.5',
+    healthFocus: listToText(initialProfile.healthFocus),
+    // Business
+    monthlyRevenueTarget: initialProfile.monthlyRevenueTarget?.toString() || '0',
+    currentRunway: initialProfile.currentRunway?.toString() || '0',
+    teamSize: initialProfile.teamSize?.toString() || '0',
+    keyMetrics: listToText(initialProfile.keyMetrics),
+    // Productivity
+    preferredAsyncTools: listToText(initialProfile.preferredAsyncTools),
+    decisionFatigueTriggers: listToText(initialProfile.decisionFatigueTriggers),
+    deepWorkHours: initialProfile.deepWorkHours || '',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -415,6 +451,24 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
       currentFocus: formData.currentFocus.trim() || null,
       myMission: formData.myMission.trim() || null,
       notes: formData.notes.trim() || null,
+      // Personal
+      children: formData.children.trim() || null,
+      partner: formData.partner.trim() || null,
+      pets: formData.pets.trim() || null,
+      hobbies: textToList(formData.hobbies),
+      // Health
+      exerciseRoutine: formData.exerciseRoutine.trim() || null,
+      sleepTarget: parseFloat(formData.sleepTarget) || 7.5,
+      healthFocus: textToList(formData.healthFocus),
+      // Business
+      monthlyRevenueTarget: parseFloat(formData.monthlyRevenueTarget) || 0,
+      currentRunway: parseInt(formData.currentRunway) || 0,
+      teamSize: parseInt(formData.teamSize) || 0,
+      keyMetrics: textToList(formData.keyMetrics),
+      // Productivity
+      preferredAsyncTools: textToList(formData.preferredAsyncTools),
+      decisionFatigueTriggers: textToList(formData.decisionFatigueTriggers),
+      deepWorkHours: formData.deepWorkHours.trim() || null,
     }
 
     try {
@@ -658,6 +712,174 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
               rows={4}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Personal</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium">Children</label>
+            <input
+              value={formData.children}
+              onChange={(e) => setFormData({ ...formData, children: e.target.value })}
+              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+              placeholder="e.g., 2 kids, ages 5 and 8"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Partner</label>
+            <input
+              value={formData.partner}
+              onChange={(e) => setFormData({ ...formData, partner: e.target.value })}
+              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+              placeholder="e.g., married, partner name"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Pets</label>
+            <input
+              value={formData.pets}
+              onChange={(e) => setFormData({ ...formData, pets: e.target.value })}
+              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+              placeholder="e.g., dog named Rex"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Hobbies</label>
+            <textarea
+              value={formData.hobbies}
+              onChange={(e) => setFormData({ ...formData, hobbies: e.target.value })}
+              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+              rows={3}
+              placeholder="What recharges you? One per line"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Health</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="sm:col-span-2">
+            <label className="text-sm font-medium">Exercise Routine</label>
+            <input
+              value={formData.exerciseRoutine}
+              onChange={(e) => setFormData({ ...formData, exerciseRoutine: e.target.value })}
+              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+              placeholder="e.g., gym 3x/week, morning runs"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Sleep Target (hours)</label>
+            <input
+              type="number"
+              step="0.5"
+              value={formData.sleepTarget}
+              onChange={(e) => setFormData({ ...formData, sleepTarget: e.target.value })}
+              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+              placeholder="7.5"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Health Focus Areas</label>
+            <textarea
+              value={formData.healthFocus}
+              onChange={(e) => setFormData({ ...formData, healthFocus: e.target.value })}
+              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+              rows={3}
+              placeholder="sleep, fitness, mental... One per line"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Business Metrics</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium">Monthly Revenue Target (USD)</label>
+            <input
+              type="number"
+              value={formData.monthlyRevenueTarget}
+              onChange={(e) => setFormData({ ...formData, monthlyRevenueTarget: e.target.value })}
+              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+              placeholder="0"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Current Runway (months)</label>
+            <input
+              type="number"
+              value={formData.currentRunway}
+              onChange={(e) => setFormData({ ...formData, currentRunway: e.target.value })}
+              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+              placeholder="0"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Team Size</label>
+            <input
+              type="number"
+              value={formData.teamSize}
+              onChange={(e) => setFormData({ ...formData, teamSize: e.target.value })}
+              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+              placeholder="0"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Key Metrics You Track</label>
+            <textarea
+              value={formData.keyMetrics}
+              onChange={(e) => setFormData({ ...formData, keyMetrics: e.target.value })}
+              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+              rows={3}
+              placeholder="MRR, churn rate, NPS... One per line"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Productivity</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium">Preferred Async Tools</label>
+            <textarea
+              value={formData.preferredAsyncTools}
+              onChange={(e) => setFormData({ ...formData, preferredAsyncTools: e.target.value })}
+              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+              rows={3}
+              placeholder="Mission Control, Telegram, Notion... One per line"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Decision Fatigue Triggers</label>
+            <textarea
+              value={formData.decisionFatigueTriggers}
+              onChange={(e) => setFormData({ ...formData, decisionFatigueTriggers: e.target.value })}
+              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+              rows={3}
+              placeholder="What drains you? One per line"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="text-sm font-medium">Deep Work Hours</label>
+            <input
+              value={formData.deepWorkHours}
+              onChange={(e) => setFormData({ ...formData, deepWorkHours: e.target.value })}
+              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+              placeholder="e.g., 09:00-12:00"
             />
           </div>
         </CardContent>
