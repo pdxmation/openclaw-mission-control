@@ -13,10 +13,6 @@ interface ProfileData {
   timezone: string | null
   wakeTime: string | null
   location: string | null
-  company: string | null
-  companyLegal: string | null
-  product: string | null
-  stage: string | null
   communicationStyle: string | null
   workStartTime: string | null
   workEndTime: string | null
@@ -38,6 +34,17 @@ interface Business {
   isPrimary: boolean
   createdAt: Date
   updatedAt: Date
+}
+
+interface Product {
+  id: string
+  name: string
+  description: string | null
+  url: string
+  scrapedData: string | null
+  createdAt: Date
+  updatedAt: Date
+  businessId: string
 }
 
 interface ProfileFormProps {
@@ -65,10 +72,6 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
     timezone: initialProfile.timezone || '',
     wakeTime: initialProfile.wakeTime || '',
     location: initialProfile.location || '',
-    company: initialProfile.company || '',
-    companyLegal: initialProfile.companyLegal || '',
-    product: initialProfile.product || '',
-    stage: initialProfile.stage || '',
     communicationStyle: initialProfile.communicationStyle || '',
     workStartTime: initialProfile.workStartTime || '',
     workEndTime: initialProfile.workEndTime || '',
@@ -96,6 +99,37 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
     isPrimary: false,
   })
   const [businessLoading, setBusinessLoading] = useState(false)
+
+  // Product management state
+  const [products, setProducts] = useState<Record<string, Product[]>>({})
+  const [loadingProducts, setLoadingProducts] = useState<Record<string, boolean>>({})
+  const [showProductModal, setShowProductModal] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [currentBusinessId, setCurrentBusinessId] = useState<string | null>(null)
+  const [productForm, setProductForm] = useState({
+    name: '',
+    url: '',
+    description: '',
+  })
+  const [productLoading, setProductLoading] = useState(false)
+  const [scrapingProductId, setScrapingProductId] = useState<string | null>(null)
+
+  const fetchProducts = async (businessId: string) => {
+    if (products[businessId]) return // Already loaded
+
+    setLoadingProducts(prev => ({ ...prev, [businessId]: true }))
+    try {
+      const res = await fetch(`/api/profile/businesses/${businessId}/products`)
+      if (res.ok) {
+        const data = await res.json()
+        setProducts(prev => ({ ...prev, [businessId]: data }))
+      }
+    } catch (err) {
+      console.error('Failed to fetch products:', err)
+    } finally {
+      setLoadingProducts(prev => ({ ...prev, [businessId]: false }))
+    }
+  }
 
   const handleBusinessSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -179,12 +213,161 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
       }
 
       setBusinesses(businesses.filter(b => b.id !== businessId))
+      // Remove products for this business
+      setProducts(prev => {
+        const newProducts = { ...prev }
+        delete newProducts[businessId]
+        return newProducts
+      })
       setSuccess('Business deleted successfully')
     } catch (err) {
       console.error('Delete business failed:', err)
       setError('Delete failed')
     } finally {
       setBusinessLoading(false)
+    }
+  }
+
+  const handleProductSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!currentBusinessId) return
+
+    setProductLoading(true)
+    setError(null)
+
+    try {
+      if (editingProduct) {
+        // Update existing product
+        const res = await fetch(`/api/profile/products/${editingProduct.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productForm),
+        })
+
+        if (!res.ok) {
+          const message = await res.json().catch(() => ({ error: 'Update failed' }))
+          setError(message.error || 'Failed to update product')
+          return
+        }
+
+        const updatedProduct = await res.json()
+        setProducts(prev => ({
+          ...prev,
+          [currentBusinessId]: prev[currentBusinessId]?.map(p => 
+            p.id === updatedProduct.id ? updatedProduct : p
+          ) || [updatedProduct]
+        }))
+        setSuccess('Product updated successfully')
+      } else {
+        // Create new product
+        const res = await fetch(`/api/profile/businesses/${currentBusinessId}/products`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productForm),
+        })
+
+        if (!res.ok) {
+          const message = await res.json().catch(() => ({ error: 'Create failed' }))
+          setError(message.error || 'Failed to create product')
+          return
+        }
+
+        const newProduct = await res.json()
+        setProducts(prev => ({
+          ...prev,
+          [currentBusinessId]: [newProduct, ...(prev[currentBusinessId] || [])]
+        }))
+        setSuccess('Product created successfully')
+      }
+
+      setShowProductModal(false)
+      setEditingProduct(null)
+      setCurrentBusinessId(null)
+      setProductForm({ name: '', url: '', description: '' })
+    } catch (err) {
+      console.error('Product operation failed:', err)
+      setError('Operation failed')
+    } finally {
+      setProductLoading(false)
+    }
+  }
+
+  const handleAddProduct = (businessId: string) => {
+    setCurrentBusinessId(businessId)
+    setEditingProduct(null)
+    setProductForm({ name: '', url: '', description: '' })
+    setShowProductModal(true)
+  }
+
+  const handleEditProduct = (businessId: string, product: Product) => {
+    setCurrentBusinessId(businessId)
+    setEditingProduct(product)
+    setProductForm({
+      name: product.name,
+      url: product.url,
+      description: product.description || '',
+    })
+    setShowProductModal(true)
+  }
+
+  const handleDeleteProduct = async (businessId: string, productId: string) => {
+    if (!confirm('Are you sure you want to delete this product?')) return
+
+    setProductLoading(true)
+    setError(null)
+
+    try {
+      const res = await fetch(`/api/profile/products/${productId}`, {
+        method: 'DELETE',
+      })
+
+      if (!res.ok) {
+        const message = await res.json().catch(() => ({ error: 'Delete failed' }))
+        setError(message.error || 'Failed to delete product')
+        return
+      }
+
+      setProducts(prev => ({
+        ...prev,
+        [businessId]: prev[businessId]?.filter(p => p.id !== productId) || []
+      }))
+      setSuccess('Product deleted successfully')
+    } catch (err) {
+      console.error('Delete product failed:', err)
+      setError('Delete failed')
+    } finally {
+      setProductLoading(false)
+    }
+  }
+
+  const handleScrapeProduct = async (businessId: string, productId: string) => {
+    setScrapingProductId(productId)
+    setError(null)
+
+    try {
+      const res = await fetch(`/api/profile/products/${productId}/scrape`, {
+        method: 'POST',
+      })
+
+      if (!res.ok) {
+        const message = await res.json().catch(() => ({ error: 'Scrape failed' }))
+        setError(message.error || 'Failed to scrape product')
+        return
+      }
+
+      const data = await res.json()
+      setProducts(prev => ({
+        ...prev,
+        [businessId]: prev[businessId]?.map(p => 
+          p.id === productId ? data.product : p
+        ) || []
+      }))
+      setSuccess('Product info scraped successfully')
+    } catch (err) {
+      console.error('Scrape product failed:', err)
+      setError('Scrape failed')
+    } finally {
+      setScrapingProductId(null)
     }
   }
 
@@ -212,10 +395,6 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
       timezone: formData.timezone.trim() || null,
       wakeTime: formData.wakeTime.trim() || null,
       location: formData.location.trim() || null,
-      company: formData.company.trim() || null,
-      companyLegal: formData.companyLegal.trim() || null,
-      product: formData.product.trim() || null,
-      stage: formData.stage.trim() || null,
       communicationStyle: formData.communicationStyle.trim() || null,
       workStartTime: formData.workStartTime.trim() || null,
       workEndTime: formData.workEndTime.trim() || null,
@@ -329,47 +508,6 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
               placeholder="City, Country"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Business</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium">Company</label>
-            <input
-              value={formData.company}
-              onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Company Legal</label>
-            <input
-              value={formData.companyLegal}
-              onChange={(e) => setFormData({ ...formData, companyLegal: e.target.value })}
-              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Product</label>
-            <input
-              value={formData.product}
-              onChange={(e) => setFormData({ ...formData, product: e.target.value })}
-              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Stage</label>
-            <input
-              value={formData.stage}
-              onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
-              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
-              placeholder="Seed / Series A / Bootstrapped"
             />
           </div>
         </CardContent>
@@ -542,44 +680,140 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
               {businesses.map((business) => (
                 <div
                   key={business.id}
-                  className="flex items-start justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="border border-border rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium truncate">{business.name}</h3>
-                      {business.isPrimary && (
-                        <span className="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-full">
-                          Primary
-                        </span>
+                  {/* Business Info */}
+                  <div className="flex items-start justify-between p-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium truncate">{business.name}</h3>
+                        {business.isPrimary && (
+                          <span className="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-full">
+                            Primary
+                          </span>
+                        )}
+                      </div>
+                      {business.industry && (
+                        <p className="text-sm text-muted-foreground">{business.industry}</p>
+                      )}
+                      {business.description && (
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                          {business.description}
+                        </p>
                       )}
                     </div>
-                    {business.industry && (
-                      <p className="text-sm text-muted-foreground">{business.industry}</p>
-                    )}
-                    {business.description && (
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                        {business.description}
-                      </p>
-                    )}
+                    <div className="flex items-center gap-2 ml-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditBusiness(business)}
+                        disabled={businessLoading}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => handleDeleteBusiness(business.id)}
+                        disabled={businessLoading}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditBusiness(business)}
-                      disabled={businessLoading}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => handleDeleteBusiness(business.id)}
-                      disabled={businessLoading}
-                    >
-                      Delete
-                    </Button>
+
+                  {/* Products Section */}
+                  <div className="border-t border-border px-4 py-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-medium">Products</h4>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAddProduct(business.id)}
+                      >
+                        + Add Product
+                      </Button>
+                    </div>
+
+                    {/* Load products on expand */}
+                    {!products[business.id] && !loadingProducts[business.id] && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground"
+                        onClick={() => fetchProducts(business.id)}
+                      >
+                        Load products
+                      </Button>
+                    )}
+
+                    {loadingProducts[business.id] && (
+                      <p className="text-sm text-muted-foreground">Loading products...</p>
+                    )}
+
+                    {products[business.id]?.length === 0 && (
+                      <p className="text-sm text-muted-foreground">No products yet.</p>
+                    )}
+
+                    {products[business.id] && products[business.id].length > 0 && (
+                      <div className="space-y-2">
+                        {products[business.id].map((product) => (
+                          <div
+                            key={product.id}
+                            className="flex items-start justify-between p-3 bg-muted/50 rounded-lg"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-sm">{product.name}</span>
+                                <a
+                                  href={product.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-primary hover:underline truncate max-w-[200px]"
+                                >
+                                  {product.url}
+                                </a>
+                              </div>
+                              {product.description && (
+                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                  {product.description}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 ml-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => handleScrapeProduct(business.id, product.id)}
+                                disabled={scrapingProductId === product.id}
+                              >
+                                {scrapingProductId === product.id ? 'Scraping...' : 'Scrape Info'}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => handleEditProduct(business.id, product)}
+                                disabled={productLoading}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+                                onClick={() => handleDeleteProduct(business.id, product.id)}
+                                disabled={productLoading}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -651,6 +885,72 @@ export function ProfileForm({ initialProfile, initialBusinesses }: ProfileFormPr
                   </Button>
                   <Button type="submit" disabled={businessLoading}>
                     {businessLoading ? 'Saving...' : editingBusiness ? 'Update' : 'Create'}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Product Modal */}
+      {showProductModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-background rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h2 className="text-lg font-semibold mb-4">
+                {editingProduct ? 'Edit Product' : 'Add Product'}
+              </h2>
+              <form onSubmit={handleProductSubmit} className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Name *</label>
+                  <input
+                    type="text"
+                    value={productForm.name}
+                    onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                    className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+                    placeholder="Product name"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">URL *</label>
+                  <input
+                    type="url"
+                    value={productForm.url}
+                    onChange={(e) => setProductForm({ ...productForm, url: e.target.value })}
+                    className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+                    placeholder="https://example.com/product"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Website URL for the product (used for scraping)
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Description</label>
+                  <textarea
+                    value={productForm.description}
+                    onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
+                    className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+                    rows={3}
+                    placeholder="Product description (auto-filled by scraping)"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Optional. Use &quot;Scrape Info&quot; to auto-fill from the website.
+                  </p>
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowProductModal(false)}
+                    disabled={productLoading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={productLoading}>
+                    {productLoading ? 'Saving...' : editingProduct ? 'Update' : 'Create'}
                   </Button>
                 </div>
               </form>

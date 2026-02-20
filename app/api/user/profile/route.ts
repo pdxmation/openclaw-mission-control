@@ -14,10 +14,6 @@ const profileSelect = {
   timezone: true,
   wakeTime: true,
   location: true,
-  company: true,
-  companyLegal: true,
-  product: true,
-  stage: true,
   communicationStyle: true,
   workStartTime: true,
   workEndTime: true,
@@ -88,10 +84,6 @@ export async function PATCH(request: NextRequest) {
     if (body.timezone !== undefined) updateData.timezone = body.timezone
     if (body.wakeTime !== undefined) updateData.wakeTime = body.wakeTime
     if (body.location !== undefined) updateData.location = body.location
-    if (body.company !== undefined) updateData.company = body.company
-    if (body.companyLegal !== undefined) updateData.companyLegal = body.companyLegal
-    if (body.product !== undefined) updateData.product = body.product
-    if (body.stage !== undefined) updateData.stage = body.stage
     if (body.communicationStyle !== undefined) updateData.communicationStyle = body.communicationStyle
     if (body.workStartTime !== undefined) updateData.workStartTime = body.workStartTime
     if (body.workEndTime !== undefined) updateData.workEndTime = body.workEndTime
