@@ -19,10 +19,6 @@ export default async function ProfilePage() {
       timezone: true,
       wakeTime: true,
       location: true,
-      company: true,
-      companyLegal: true,
-      product: true,
-      stage: true,
       communicationStyle: true,
       workStartTime: true,
       workEndTime: true,
@@ -41,5 +37,20 @@ export default async function ProfilePage() {
     throw new Error('Profile not found')
   }
 
-  return <ProfileForm initialProfile={profile} />
+  // Fetch user's businesses
+  const businesses = await prisma.business.findMany({
+    where: { userId: user.id },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      industry: true,
+      isPrimary: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  return <ProfileForm initialProfile={profile} initialBusinesses={businesses} />
 }

@@ -425,9 +425,27 @@ model Business {
 
   // Relations
   goals       BusinessGoal[]
+  products    Product[]
 
   @@index([userId])
   @@map("business")
+}
+
+model Product {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  url          String
+  scrapedData  String?  @db.Text @map("scraped_data")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relation to business
+  businessId   String   @map("business_id")
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@map("product")
 }
 
 model BusinessGoal {
