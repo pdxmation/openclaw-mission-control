@@ -27,6 +27,7 @@ const profileSelect = {
   longTermGoals: true,
   techStack: true,
   currentFocus: true,
+  myMission: true,
   notes: true,
   createdAt: true,
   updatedAt: true,
@@ -100,6 +101,7 @@ export async function PATCH(request: NextRequest) {
     if (body.longTermGoals !== undefined) updateData.longTermGoals = body.longTermGoals
     if (body.techStack !== undefined) updateData.techStack = body.techStack
     if (body.currentFocus !== undefined) updateData.currentFocus = body.currentFocus
+    if (body.myMission !== undefined) updateData.myMission = body.myMission
     if (body.notes !== undefined) updateData.notes = body.notes
 
     const user = await prisma.user.update({

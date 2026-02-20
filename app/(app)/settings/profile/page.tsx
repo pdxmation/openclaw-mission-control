@@ -32,6 +32,7 @@ export default async function ProfilePage() {
       longTermGoals: true,
       techStack: true,
       currentFocus: true,
+      myMission: true,
       notes: true,
     }
   })

@@ -59,6 +59,7 @@ model User {
   longTermGoals   String[] @default([])
   techStack     String[] @default([])
   currentFocus  String?
+  myMission     String?   @db.Text
   notes         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

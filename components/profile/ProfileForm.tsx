@@ -26,6 +26,7 @@ interface ProfileData {
   longTermGoals: string[]
   techStack: string[]
   currentFocus: string | null
+  myMission: string | null
   notes: string | null
 }
 
@@ -66,6 +67,7 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
     longTermGoals: listToText(initialProfile.longTermGoals),
     techStack: listToText(initialProfile.techStack),
     currentFocus: initialProfile.currentFocus || '',
+    myMission: initialProfile.myMission || '',
     notes: initialProfile.notes || '',
   })
   const [saving, setSaving] = useState(false)
@@ -109,6 +111,7 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
       longTermGoals: textToList(formData.longTermGoals),
       techStack: textToList(formData.techStack),
       currentFocus: formData.currentFocus.trim() || null,
+      myMission: formData.myMission.trim() || null,
       notes: formData.notes.trim() || null,
     }
 
@@ -314,7 +317,7 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Goals</CardTitle>
+          <CardTitle>Goals & Mission</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
@@ -346,6 +349,19 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
               rows={4}
               placeholder="One per line"
             />
+          </div>
+          <div className="sm:col-span-3">
+            <label className="text-sm font-medium">My Mission</label>
+            <textarea
+              value={formData.myMission}
+              onChange={(e) => setFormData({ ...formData, myMission: e.target.value })}
+              className="mt-1 w-full px-3 py-2 bg-background border border-input rounded-lg"
+              rows={4}
+              placeholder="Describe your personal mission, purpose, or guiding principles..."
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Your personal mission statement helps your AI assistant understand your core values and long-term direction.
+            </p>
           </div>
         </CardContent>
       </Card>
