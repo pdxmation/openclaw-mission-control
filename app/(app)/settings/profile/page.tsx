@@ -30,6 +30,24 @@ export default async function ProfilePage() {
       currentFocus: true,
       myMission: true,
       notes: true,
+      // Personal
+      children: true,
+      partner: true,
+      pets: true,
+      hobbies: true,
+      // Health
+      exerciseRoutine: true,
+      sleepTarget: true,
+      healthFocus: true,
+      // Business
+      monthlyRevenueTarget: true,
+      currentRunway: true,
+      teamSize: true,
+      keyMetrics: true,
+      // Productivity
+      preferredAsyncTools: true,
+      decisionFatigueTriggers: true,
+      deepWorkHours: true,
     }
   })
 
