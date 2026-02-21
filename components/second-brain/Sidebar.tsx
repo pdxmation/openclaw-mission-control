@@ -40,6 +40,12 @@ export function Sidebar({
       note: [],
     }
     
+    // Safety check - ensure documents is an array
+    if (!Array.isArray(documents)) {
+      console.warn('Sidebar: documents is not an array', documents)
+      return groups
+    }
+    
     for (const doc of documents) {
       if (groups[doc.type]) {
         groups[doc.type].push(doc)

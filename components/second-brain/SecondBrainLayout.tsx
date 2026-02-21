@@ -40,10 +40,16 @@ export function SecondBrainLayout({ userId }: SecondBrainLayoutProps) {
       const res = await fetch('/api/documents', { credentials: 'include' })
       if (res.ok) {
         const data = await res.json()
-        setDocuments(data)
+        // API returns { documents: [...] }
+        const docs = data.documents || data
+        setDocuments(Array.isArray(docs) ? docs : [])
+      } else {
+        console.error('Failed to fetch documents:', res.status)
+        setDocuments([])
       }
     } catch (err) {
       console.error('Failed to fetch documents:', err)
+      setDocuments([])
     } finally {
       setLoading(false)
     }
