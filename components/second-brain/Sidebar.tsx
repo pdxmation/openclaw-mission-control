@@ -75,35 +75,28 @@ export function Sidebar({
     return Array.from(tagSet).sort()
   }, [documents])
 
-  const typeIcons: Record<string, string> = {
-    journal: '📓',
-    concept: '💡',
-    research: '🔬',
-    note: '📝',
-  }
-
-  const typeLabels: Record<string, string> = {
-    journal: 'Journals',
-    concept: 'Concepts',
-    research: 'Research',
-    note: 'Notes',
+  const typeConfig: Record<string, { icon: string; label: string; color: string }> = {
+    journal: { icon: '📓', label: 'Journals', color: 'text-green-400' },
+    concept: { icon: '💡', label: 'Concepts', color: 'text-amber-400' },
+    research: { icon: '🔬', label: 'Research', color: 'text-blue-400' },
+    note: { icon: '📝', label: 'Notes', color: 'text-slate-400' },
   }
 
   return (
-    <div className="w-64 h-full border-r bg-muted/30 flex flex-col">
+    <div className="w-64 h-full border-r bg-card flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b">
-        <h2 className="font-semibold text-lg mb-3">Second Brain</h2>
+      <div className="p-4 border-b border-border">
+        <h2 className="font-semibold text-lg mb-3 text-foreground">Second Brain</h2>
         <div className="flex gap-2">
           <button
             onClick={onCreateDocument}
-            className="flex-1 px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90"
+            className="flex-1 px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 transition-colors"
           >
             + New
           </button>
           <button
             onClick={onSync}
-            className="px-3 py-2 border rounded-lg text-sm hover:bg-muted"
+            className="px-3 py-2 border border-border rounded-lg text-sm hover:bg-muted transition-colors"
             title="Sync with ~/2nd-brain/"
           >
             🔄
@@ -113,7 +106,7 @@ export function Sidebar({
 
       {/* Tags Filter */}
       {allTags.length > 0 && (
-        <div className="p-4 border-b">
+        <div className="p-4 border-b border-border">
           <h3 className="text-xs font-medium text-muted-foreground uppercase mb-2">
             Tags
           </h3>
@@ -130,7 +123,7 @@ export function Sidebar({
               <button
                 key={tag}
                 onClick={() => onSelectTag(tag)}
-                className="px-2 py-1 text-xs bg-muted rounded-full hover:bg-muted/80"
+                className="px-2 py-1 text-xs bg-muted text-muted-foreground rounded-full hover:bg-muted/80 transition-colors"
               >
                 #{tag}
               </button>
@@ -143,22 +136,23 @@ export function Sidebar({
       <div className="flex-1 overflow-y-auto p-2">
         {(['journal', 'concept', 'research', 'note'] as const).map(type => {
           const docs = groupedDocs[type]
+          const config = typeConfig[type]
           if (docs.length === 0) return null
 
           return (
             <div key={type} className="mb-4">
-              <h3 className="text-xs font-medium text-muted-foreground uppercase px-2 mb-1">
-                {typeIcons[type]} {typeLabels[type]} ({docs.length})
+              <h3 className={`text-xs font-medium uppercase px-2 mb-1 ${config.color}`}>
+                {config.icon} {config.label} ({docs.length})
               </h3>
               <ul className="space-y-0.5">
                 {docs.map(doc => (
                   <li key={doc.id}>
                     <button
                       onClick={() => onSelectDoc(doc)}
-                      className={`w-full text-left px-2 py-1.5 rounded text-sm truncate ${
+                      className={`w-full text-left px-2 py-1.5 rounded text-sm truncate transition-colors ${
                         selectedDoc?.id === doc.id
                           ? 'bg-primary text-primary-foreground'
-                          : 'hover:bg-muted'
+                          : 'text-foreground hover:bg-muted'
                       }`}
                     >
                       {doc.title}
@@ -172,7 +166,7 @@ export function Sidebar({
       </div>
 
       {/* Stats */}
-      <div className="p-4 border-t text-xs text-muted-foreground">
+      <div className="p-4 border-t border-border text-xs text-muted-foreground">
         <div className="flex justify-between">
           <span>Total:</span>
           <span>{documents.length} docs</span>

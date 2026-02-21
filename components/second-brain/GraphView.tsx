@@ -97,6 +97,12 @@ export function GraphView({ documents, onSelectDoc }: GraphViewProps) {
     const width = canvas.width
     const height = canvas.height
     
+    // Check if dark mode
+    const isDark = document.documentElement.classList.contains('dark')
+    const bgColor = isDark ? '#0f172a' : '#ffffff'
+    const edgeColor = isDark ? 'rgba(148, 163, 184, 0.3)' : '#e5e7eb'
+    const textColor = isDark ? '#e2e8f0' : '#374151'
+    
     const simulate = () => {
       const nodeList = nodesRef.current
       const edgeList = edgesRef.current
@@ -162,11 +168,11 @@ export function GraphView({ documents, onSelectDoc }: GraphViewProps) {
       }
       
       // Draw
-      ctx.fillStyle = '#ffffff'
+      ctx.fillStyle = bgColor
       ctx.fillRect(0, 0, width, height)
       
       // Draw edges
-      ctx.strokeStyle = '#e5e7eb'
+      ctx.strokeStyle = edgeColor
       ctx.lineWidth = 1
       for (const edge of edgeList) {
         const a = nodeList.find(n => n.id === edge.source)
@@ -190,12 +196,12 @@ export function GraphView({ documents, onSelectDoc }: GraphViewProps) {
         ctx.fill()
         
         // Border
-        ctx.strokeStyle = isHovered ? '#000' : '#fff'
-        ctx.lineWidth = 2
+        ctx.strokeStyle = isDark ? '#1e293b' : '#ffffff'
+        ctx.lineWidth = 3
         ctx.stroke()
         
         // Label
-        ctx.fillStyle = '#374151'
+        ctx.fillStyle = textColor
         ctx.font = isHovered ? 'bold 12px sans-serif' : '11px sans-serif'
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
@@ -221,12 +227,12 @@ export function GraphView({ documents, onSelectDoc }: GraphViewProps) {
   }, [hoveredNode])
 
   const getNodeColor = (type: Document['type'], isHovered: boolean): string => {
-    const alpha = isHovered ? '1' : '0.8'
+    const alpha = isHovered ? '1' : '0.85'
     switch (type) {
-      case 'concept': return `rgba(251, 191, 36, ${alpha})` // yellow
+      case 'concept': return `rgba(251, 191, 36, ${alpha})` // amber
       case 'research': return `rgba(96, 165, 250, ${alpha})` // blue
       case 'journal': return `rgba(74, 222, 128, ${alpha})` // green
-      default: return `rgba(156, 163, 175, ${alpha})` // gray
+      default: return `rgba(148, 163, 184, ${alpha})` // slate
     }
   }
 
@@ -273,7 +279,7 @@ export function GraphView({ documents, onSelectDoc }: GraphViewProps) {
   }
 
   return (
-    <div ref={containerRef} className="w-full h-full relative">
+    <div ref={containerRef} className="w-full h-full relative bg-background">
       <canvas
         ref={canvasRef}
         width={1200}
@@ -298,41 +304,41 @@ export function GraphView({ documents, onSelectDoc }: GraphViewProps) {
       <div className="absolute bottom-4 right-4 flex gap-2">
         <button
           onClick={() => setScale(s => Math.min(2, s * 1.2))}
-          className="px-3 py-2 bg-white rounded-lg shadow border hover:bg-gray-50"
+          className="px-3 py-2 bg-card text-card-foreground rounded-lg shadow border border-border hover:bg-muted transition-colors"
         >
           +
         </button>
         <button
           onClick={() => setScale(s => Math.max(0.5, s * 0.8))}
-          className="px-3 py-2 bg-white rounded-lg shadow border hover:bg-gray-50"
+          className="px-3 py-2 bg-card text-card-foreground rounded-lg shadow border border-border hover:bg-muted transition-colors"
         >
           -
         </button>
         <button
           onClick={() => { setScale(1); setOffset({ x: 0, y: 0 }) }}
-          className="px-3 py-2 bg-white rounded-lg shadow border hover:bg-gray-50"
+          className="px-3 py-2 bg-card text-card-foreground rounded-lg shadow border border-border hover:bg-muted transition-colors"
         >
           Reset
         </button>
       </div>
       
       {/* Legend */}
-      <div className="absolute top-4 left-4 bg-white/90 rounded-lg shadow border p-3 text-sm">
+      <div className="absolute top-4 left-4 bg-card/95 backdrop-blur rounded-lg shadow border border-border p-3 text-sm">
         <div className="flex items-center gap-2 mb-1">
-          <span className="w-3 h-3 rounded-full bg-yellow-400"></span>
-          <span>Concepts</span>
+          <span className="w-3 h-3 rounded-full bg-amber-400"></span>
+          <span className="text-foreground">Concepts</span>
         </div>
         <div className="flex items-center gap-2 mb-1">
           <span className="w-3 h-3 rounded-full bg-blue-400"></span>
-          <span>Research</span>
+          <span className="text-foreground">Research</span>
         </div>
         <div className="flex items-center gap-2 mb-1">
           <span className="w-3 h-3 rounded-full bg-green-400"></span>
-          <span>Journals</span>
+          <span className="text-foreground">Journals</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-gray-400"></span>
-          <span>Notes</span>
+          <span className="w-3 h-3 rounded-full bg-slate-400"></span>
+          <span className="text-foreground">Notes</span>
         </div>
       </div>
     </div>

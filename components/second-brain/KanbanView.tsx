@@ -18,11 +18,11 @@ interface KanbanViewProps {
   onUpdateDoc: () => void
 }
 
-const COLUMNS: { id: Document['type']; label: string; color: string }[] = [
-  { id: 'concept', label: 'Concepts', color: 'bg-yellow-100 border-yellow-200' },
-  { id: 'research', label: 'Research', color: 'bg-blue-100 border-blue-200' },
-  { id: 'note', label: 'Notes', color: 'bg-gray-100 border-gray-200' },
-  { id: 'journal', label: 'Journals', color: 'bg-green-100 border-green-200' },
+const COLUMNS: { id: Document['type']; label: string; borderColor: string; bgColor: string; textColor: string }[] = [
+  { id: 'concept', label: 'Concepts', borderColor: 'border-amber-500/50', bgColor: 'bg-amber-500/5', textColor: 'text-amber-400' },
+  { id: 'research', label: 'Research', borderColor: 'border-blue-500/50', bgColor: 'bg-blue-500/5', textColor: 'text-blue-400' },
+  { id: 'note', label: 'Notes', borderColor: 'border-slate-500/50', bgColor: 'bg-slate-500/5', textColor: 'text-slate-400' },
+  { id: 'journal', label: 'Journals', borderColor: 'border-green-500/50', bgColor: 'bg-green-500/5', textColor: 'text-green-400' },
 ]
 
 export function KanbanView({ documents, onSelectDoc, onUpdateDoc }: KanbanViewProps) {
@@ -96,16 +96,20 @@ export function KanbanView({ documents, onSelectDoc, onUpdateDoc }: KanbanViewPr
         {COLUMNS.map(column => (
           <div
             key={column.id}
-            className={`w-80 flex-shrink-0 rounded-lg border ${column.color} flex flex-col`}
+            className={`w-80 flex-shrink-0 rounded-xl border-2 ${column.borderColor} ${column.bgColor} flex flex-col transition-all`}
             onDrop={(e) => handleDrop(e, column.id)}
             onDragOver={handleDragOver}
           >
             {/* Column Header */}
-            <div className="p-3 border-b border-inherit font-medium flex items-center justify-between">
-              <span>{column.label}</span>
-              <span className="text-xs bg-white/50 px-2 py-0.5 rounded-full">
-                {groupedDocs[column.id].length}
-              </span>
+            <div className="flex items-center justify-between p-3 border-b border-border/50">
+              <div className="flex items-center gap-2">
+                <h2 className={`font-semibold text-sm ${column.textColor}`}>
+                  {column.label}
+                </h2>
+                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                  {groupedDocs[column.id].length}
+                </span>
+              </div>
             </div>
 
             {/* Column Content */}
@@ -116,9 +120,9 @@ export function KanbanView({ documents, onSelectDoc, onUpdateDoc }: KanbanViewPr
                   draggable
                   onDragStart={(e) => handleDragStart(e, doc.id)}
                   onClick={() => onSelectDoc(doc)}
-                  className="bg-white rounded-lg p-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow border"
+                  className="bg-card rounded-lg p-3 shadow-sm cursor-pointer hover:shadow-md transition-all border border-border/50 hover:border-border"
                 >
-                  <h4 className="font-medium text-sm mb-1 line-clamp-2">
+                  <h4 className="font-medium text-sm mb-1 line-clamp-2 text-foreground">
                     {doc.title}
                   </h4>
                   <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
@@ -131,7 +135,7 @@ export function KanbanView({ documents, onSelectDoc, onUpdateDoc }: KanbanViewPr
                       {doc.tags.slice(0, 3).map(tag => (
                         <span
                           key={tag}
-                          className="text-[10px] px-1.5 py-0.5 bg-muted rounded-full"
+                          className="text-[10px] px-1.5 py-0.5 bg-muted text-muted-foreground rounded-full"
                         >
                           #{tag}
                         </span>
