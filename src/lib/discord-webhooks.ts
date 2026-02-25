@@ -88,11 +88,11 @@ export async function sendTaskUpdate(data: TaskUpdate) {
   }
 
   if (task.outcome && action === 'completed') {
-    fields.push({ name: 'Outcome', value: task.outcome });
+    fields.push({ name: 'Outcome', value: task.outcome, inline: false });
   }
 
   if (task.blocker && action === 'blocked') {
-    fields.push({ name: 'Blocker', value: task.blocker });
+    fields.push({ name: 'Blocker', value: task.blocker, inline: false });
   }
 
   const payload = {
