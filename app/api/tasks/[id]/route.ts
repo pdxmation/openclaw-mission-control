@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
 import { authorizeAndGetUserId, unauthorizedResponse } from '../../../../lib/api-auth'
 import { embedTask, deleteTaskEmbedding } from '../../../../lib/embeddings'
+import { sendTaskUpdate, sendAlert } from '../../../../src/lib/discord-webhooks'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -177,6 +178,42 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         taskId: task.id,
       }
     })
+    
+    // Send Discord notification for status changes
+    if (body.status && body.status !== currentTask.status) {
+      const discordAction = body.status === 'COMPLETED' ? 'completed' 
+        : body.status === 'BLOCKED' ? 'blocked' 
+        : 'updated'
+      
+      if (discordAction === 'blocked') {
+        // Send alert for blocked tasks
+        await sendAlert({
+          level: 'warning',
+          title: `Task Blocked: ${task.title}`,
+          message: body.blocker || 'Task has been marked as blocked',
+          metadata: { 
+            taskId: task.id, 
+            source: task.source,
+            blocker: body.blocker 
+          }
+        })
+      }
+      
+      // Send task update notification
+      await sendTaskUpdate({
+        action: discordAction,
+        task: {
+          id: task.id,
+          title: task.title,
+          status: task.status,
+          priority: task.priority,
+          assignee: task.assignee?.name,
+          outcome: task.outcome ?? undefined,
+          blocker: task.blocker ?? undefined
+        },
+        url: `https://moltmc.app/tasks/${task.id}`
+      })
+    }
     
     // Re-generate embedding if content changed (async, don't block)
     if (body.title || body.description || body.notes || body.outcome || body.blocker || body.need) {

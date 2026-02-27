@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../lib/prisma'
 import { authorizeAndGetUserId, unauthorizedResponse } from '../../../lib/api-auth'
 import { embedTask } from '../../../lib/embeddings'
+import { sendTaskUpdate } from '../../../src/lib/discord-webhooks'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -206,6 +207,19 @@ export async function POST(request: NextRequest) {
         details: JSON.stringify({ title: task.title, status: task.status, source: task.source }),
         taskId: task.id,
       }
+    })
+    
+    // Send Discord notification
+    await sendTaskUpdate({
+      action: 'created',
+      task: {
+        id: task.id,
+        title: task.title,
+        status: task.status,
+        priority: task.priority,
+        assignee: task.assignee?.name
+      },
+      url: `https://moltmc.app/tasks/${task.id}`
     })
     
     // Generate embedding async (don't block response)
