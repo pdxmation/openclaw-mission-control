@@ -208,8 +208,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
           status: task.status,
           priority: task.priority,
           assignee: task.assignee?.name,
-          outcome: task.outcome,
-          blocker: task.blocker
+          outcome: task.outcome ?? undefined,
+          blocker: task.blocker ?? undefined
         },
         url: `https://moltmc.app/tasks/${task.id}`
       })
