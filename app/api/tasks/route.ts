@@ -20,14 +20,24 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status')
+    const statusParam = searchParams.get('status')
     const source = searchParams.get('source')
     const projectId = searchParams.get('projectId')
 
     const where: Record<string, unknown> = { userId } // Multi-tenant filter
-    if (status) {
-      where.status = status
+    
+    // Handle comma-separated status values (e.g., ?status=BACKLOG,REVIEW,BLOCKED)
+    if (statusParam) {
+      const statuses = statusParam.split(',').map(s => s.trim()).filter(Boolean)
+      if (statuses.length > 1) {
+        // Multiple statuses: use Prisma's `in` operator
+        where.status = { in: statuses as Array<'BACKLOG' | 'IN_PROGRESS' | 'COMPLETED' | 'REVIEW' | 'BLOCKED' | 'RECURRING'> }
+      } else if (statuses.length === 1) {
+        // Single status: use direct value
+        where.status = statuses[0] as 'BACKLOG' | 'IN_PROGRESS' | 'COMPLETED' | 'REVIEW' | 'BLOCKED' | 'RECURRING'
+      }
     }
+    
     if (source) {
       where.source = source
     }
