@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutGrid, FileText, Users, Menu, X, Settings, Bot, FolderKanban, Brain } from 'lucide-react'
+import { LayoutGrid, FileText, Users, Menu, X, Settings, Bot, FolderKanban, Brain, CalendarClock } from 'lucide-react'
 import { useState } from 'react'
 import { authClient } from '@/lib/auth-client'
 
@@ -10,6 +10,7 @@ const navItems = [
   { href: '/tasks', label: 'Tasks', icon: LayoutGrid },
   { href: '/projects', label: 'Projects', icon: FolderKanban },
   { href: '/second-brain', label: '2nd Brain', icon: Brain },
+  { href: '/cron-jobs', label: 'Cron Jobs', icon: CalendarClock },
   { href: '/agents', label: 'Agents', icon: Bot },
   { href: '/docs', label: 'Docs', icon: FileText },
   { href: '/people', label: 'People', icon: Users },

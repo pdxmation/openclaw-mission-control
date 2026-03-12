@@ -515,3 +515,46 @@ model BusinessGoal {
   @@index([status])
   @@map("business_goal")
 }
+
+// ============================================
+// Cron Jobs (Read-Only Mirror from Gateway)
+// ============================================
+
+model CronJob {
+  id              String   @id @default(cuid())
+  agentId         String   @map("agent_id")
+  name            String
+  enabled         Boolean  @default(true)
+  
+  // Schedule fields
+  scheduleKind    String   @map("schedule_kind")  // cron | every | at
+  scheduleExpr    String?  @map("schedule_expr")  // cron expression
+  scheduleEveryMs Int?     @map("schedule_every_ms")
+  scheduleAt      DateTime? @map("schedule_at")
+  scheduleTz      String?  @map("schedule_tz")
+  
+  // Payload fields
+  payloadKind     String   @map("payload_kind")  // agentTurn | systemEvent
+  payloadMessage  String?  @map("payload_message") @db.Text
+  
+  // Delivery fields
+  deliveryMode    String?  @map("delivery_mode")  // announce | webhook | none
+  deliveryTo      String?  @map("delivery_to")
+  deliveryChannel String?  @map("delivery_channel")
+  
+  // State fields
+  nextRunAt       DateTime @map("next_run_at")
+  lastRunAt       DateTime? @map("last_run_at")
+  lastRunStatus   String?  @map("last_run_status")  // ok | error
+  lastDurationMs  Int?     @map("last_duration_ms")
+  consecutiveErrors Int    @default(0) @map("consecutive_errors")
+  
+  // Timestamps
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([agentId])
+  @@index([enabled])
+  @@index([nextRunAt])
+  @@map("cron_job")
+}
