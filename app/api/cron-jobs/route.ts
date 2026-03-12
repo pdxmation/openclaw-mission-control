@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyApiKey } from "@/lib/api-key";
 
 /**
  * GET /api/cron-jobs
