@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { validateApiKey } from "@/lib/api-keys/actions";
 
 /**
  * POST /api/cron-jobs/sync
  * Sync cron jobs from OpenClaw Gateway (via MAIN agent)
  * 
  * Headers:
- * - Authorization: Bearer <MC_API_KEY>
+ * - Authorization: Bearer <MC_API_KEY> (mc_ prefixed key)
  * - X-Agent-Source: MAIN (or other agent name)
  * 
  * Body:
@@ -25,22 +26,22 @@ import { prisma } from "@/lib/prisma";
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify API key
+    // Verify API key using the same mechanism as other routes
     const authHeader = request.headers.get("authorization");
     const apiKey = authHeader?.replace("Bearer ", "");
 
-    if (!apiKey) {
+    if (!apiKey || !apiKey.startsWith("mc_")) {
       return NextResponse.json(
-        { error: "Authorization required" },
+        { error: "Authorization required - use MC_API_KEY (mc_ prefixed)" },
         { status: 401 }
       );
     }
 
-    // Validate against environment MC_API_KEY
-    const expectedToken = process.env.MC_API_KEY;
-    if (!expectedToken || apiKey !== expectedToken) {
+    // Validate API key against database
+    const userId = await validateApiKey(apiKey);
+    if (!userId) {
       return NextResponse.json(
-        { error: "Invalid API token" },
+        { error: "Invalid API key" },
         { status: 403 }
       );
     }
