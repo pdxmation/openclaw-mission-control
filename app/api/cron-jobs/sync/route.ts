@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
  * Sync cron jobs from OpenClaw Gateway (via MAIN agent)
  * 
  * Headers:
- * - Authorization: Bearer <MC_API_TOKEN>
+ * - Authorization: Bearer <MC_API_KEY>
  * - X-Agent-Source: MAIN (or other agent name)
  * 
  * Body:
@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate against environment MC_API_TOKEN
-    const expectedToken = process.env.MC_API_TOKEN;
+    // Validate against environment MC_API_KEY
+    const expectedToken = process.env.MC_API_KEY;
     if (!expectedToken || apiKey !== expectedToken) {
       return NextResponse.json(
         { error: "Invalid API token" },
