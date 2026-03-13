@@ -5,11 +5,11 @@ import { validateApiKey } from "@/lib/api-keys/actions";
 /**
  * POST /api/cron-jobs/sync
  * Sync cron jobs from OpenClaw Gateway (via MAIN agent)
- * 
+ *
  * Headers:
  * - Authorization: Bearer <MC_API_KEY> (mc_ prefixed key)
  * - X-Agent-Source: MAIN (or other agent name)
- * 
+ *
  * Body:
  * {
  *   jobs: Array<{
