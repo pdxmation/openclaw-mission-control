@@ -106,6 +106,7 @@ model User {
   businesses         Business[]
   stripeSubscription StripeSubscription?
   freedomScores      FreedomScore[]
+  cronJobs           CronJob[]
 
   @@map("user")
 }
@@ -522,6 +523,9 @@ model BusinessGoal {
 
 model CronJob {
   id              String   @id @default(cuid())
+  externalId      String   @map("external_id")
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   agentId         String   @map("agent_id")
   name            String
   enabled         Boolean  @default(true)
@@ -553,6 +557,8 @@ model CronJob {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
+  @@unique([userId, externalId])
+  @@index([userId])
   @@index([agentId])
   @@index([enabled])
   @@index([nextRunAt])
