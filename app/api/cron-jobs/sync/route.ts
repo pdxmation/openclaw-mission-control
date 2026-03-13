@@ -87,13 +87,10 @@ export async function POST(request: NextRequest) {
           consecutiveErrors: job.state.consecutiveErrors || 0,
         };
 
-        const upserted = await prisma.cronJob.upsert({
-          where: { id: job.id },
+        await prisma.cronJob.upsert({
+          where: { userId_externalId: { userId, externalId: job.id } },
           update: data,
-          create: {
-            id: job.id,
-            ...data,
-          },
+          create: { externalId: job.id, userId, ...data },
         });
 
         results.push({ id: job.id, status: "ok" });
