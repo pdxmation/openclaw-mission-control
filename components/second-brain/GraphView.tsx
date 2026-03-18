@@ -46,13 +46,13 @@ export function GraphView({ documents, onSelectDoc }: GraphViewProps) {
 
   // Build nodes and edges
   const { nodes, edges } = useMemo(() => {
-    const width = containerRef.current?.clientWidth || 800
-    const height = containerRef.current?.clientHeight || 600
+    const width = 800
+    const height = 600
     
     const nodeList: Node[] = documents.map((doc, i) => ({
       id: doc.id,
-      x: width / 2 + (Math.random() - 0.5) * 200,
-      y: height / 2 + (Math.random() - 0.5) * 200,
+      x: width / 2 + Math.cos((i / documents.length) * 2 * Math.PI) * 150,
+      y: height / 2 + Math.sin((i / documents.length) * 2 * Math.PI) * 150,
       vx: 0,
       vy: 0,
       doc,
@@ -85,6 +85,16 @@ export function GraphView({ documents, onSelectDoc }: GraphViewProps) {
     nodesRef.current = nodes
     edgesRef.current = edges
   }, [nodes, edges])
+
+  const getNodeColor = (type: Document['type'], isHovered: boolean): string => {
+    const alpha = isHovered ? '1' : '0.85'
+    switch (type) {
+      case 'concept': return `rgba(251, 191, 36, ${alpha})` // amber
+      case 'research': return `rgba(96, 165, 250, ${alpha})` // blue
+      case 'journal': return `rgba(74, 222, 128, ${alpha})` // green
+      default: return `rgba(148, 163, 184, ${alpha})` // slate
+    }
+  }
 
   // Force simulation
   useEffect(() => {
@@ -225,16 +235,6 @@ export function GraphView({ documents, onSelectDoc }: GraphViewProps) {
       }
     }
   }, [hoveredNode])
-
-  const getNodeColor = (type: Document['type'], isHovered: boolean): string => {
-    const alpha = isHovered ? '1' : '0.85'
-    switch (type) {
-      case 'concept': return `rgba(251, 191, 36, ${alpha})` // amber
-      case 'research': return `rgba(96, 165, 250, ${alpha})` // blue
-      case 'journal': return `rgba(74, 222, 128, ${alpha})` // green
-      default: return `rgba(148, 163, 184, ${alpha})` // slate
-    }
-  }
 
   const handleMouseMove = (e: React.MouseEvent) => {
     const canvas = canvasRef.current

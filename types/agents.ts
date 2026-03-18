@@ -46,25 +46,31 @@ export const AGENTS_CONFIG: Record<string, Omit<Agent, 'status' | 'totalTasks' |
   C3PO: {
     id: 'C3PO',
     name: 'C-3PO',
-    emoji: '🤖✨',
-    description: 'Communication, emails, protocol, client outreach',
+    emoji: '💼',
+    description: 'Sales, outbound, lead generation, client outreach',
   },
   SABINE: {
     id: 'SABINE',
     name: 'Sabine',
-    emoji: '🎨',
-    description: 'Creative, design, visuals, branding',
-  },
-  K2SO: {
-    id: 'K2SO',
-    name: 'K-2SO',
-    emoji: '🤖⚔️',
-    description: 'Polymarket trading agent operator',
+    emoji: '📢',
+    description: 'Marketing, content, social media, branding',
   },
   CHOPPER: {
     id: 'CHOPPER',
     name: 'Chopper',
     emoji: '🔧',
-    description: 'Developer, NextCRM project maintainer',
+    description: 'Technical lead, development, infrastructure',
+  },
+  LEONARDO: {
+    id: 'LEONARDO',
+    name: 'Leonardo',
+    emoji: '🎬',
+    description: 'Video editing, motion graphics, content production',
+  },
+  JUSTINIAN: {
+    id: 'JUSTINIAN',
+    name: 'Justinian',
+    emoji: '⚖️',
+    description: 'Legal, contracts, compliance, policy review',
   },
 }

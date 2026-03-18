@@ -19,14 +19,14 @@ interface AlertMessage {
   level: 'info' | 'warning' | 'critical';
   title: string;
   message: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface StatusUpdate {
   event: 'deploy' | 'health-check' | 'backup' | 'sync';
   status: 'success' | 'failure' | 'in-progress';
   details: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 const WEBHOOKS = {
@@ -47,7 +47,7 @@ const COLORS = {
   failure: 0xe74c3c,    // Red
 };
 
-async function sendWebhook(webhookUrl: string | undefined, payload: any) {
+async function sendWebhook(webhookUrl: string | undefined, payload: unknown) {
   if (!webhookUrl) {
     console.warn('[Discord Webhook] No URL configured, skipping');
     return;

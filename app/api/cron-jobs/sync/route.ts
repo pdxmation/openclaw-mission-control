@@ -94,9 +94,10 @@ export async function POST(request: NextRequest) {
         });
 
         results.push({ id: job.id, status: "ok" });
-      } catch (error: any) {
-        console.error(`[Cron Sync] Error upserting job ${job.id}:`, error.message);
-        results.push({ id: job.id, status: "error", error: error.message });
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error)
+        console.error(`[Cron Sync] Error upserting job ${job.id}:`, msg);
+        results.push({ id: job.id, status: "error", error: msg });
       }
     }
 
@@ -111,10 +112,11 @@ export async function POST(request: NextRequest) {
       errors: errorCount,
       results,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[Cron Sync] Unexpected error:", error);
+    const msg = error instanceof Error ? error.message : String(error)
     return NextResponse.json(
-      { error: "Sync failed", details: error.message },
+      { error: "Sync failed", details: msg },
       { status: 500 }
     );
   }

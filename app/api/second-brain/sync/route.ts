@@ -183,19 +183,19 @@ async function getMarkdownFiles(dir: string): Promise<string[]> {
   return files
 }
 
-function parseFrontmatter(content: string): { frontmatter: Record<string, any>; body: string } {
+function parseFrontmatter(content: string): { frontmatter: Record<string, unknown>; body: string } {
   const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/
   const match = content.match(frontmatterRegex)
-  
+
   if (!match) {
     return { frontmatter: {}, body: content }
   }
-  
+
   const frontmatterText = match[1]
   const body = match[2]
-  
+
   // Simple YAML-like parsing
-  const frontmatter: Record<string, any> = {}
+  const frontmatter: Record<string, unknown> = {}
   for (const line of frontmatterText.split('\n')) {
     const [key, ...valueParts] = line.split(':')
     if (key && valueParts.length > 0) {
