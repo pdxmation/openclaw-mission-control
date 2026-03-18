@@ -65,7 +65,7 @@ export function SplitEditor({ document: doc, onUpdate, allDocuments }: SplitEdit
 
   const renderMarkdown = (text: string): string => {
     // Simple markdown to HTML conversion
-    let html = text
+    const html = text
       // Headers
       .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
       .replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold mt-5 mb-3">$1</h2>')
