@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
         const { frontmatter, body } = parseFrontmatter(content)
         
         // Determine document type from path or frontmatter
-        const type = frontmatter.type || 
+        const type = (frontmatter.type as string) ||
           (relativePath.includes('journal') ? 'journal' :
            relativePath.includes('concept') ? 'concept' :
            relativePath.includes('research') ? 'research' : 'note')
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
               data: {
                 content: body,
                 type,
-                tags: frontmatter.tags || [],
+                tags: (frontmatter.tags as string[]) || [],
                 updatedAt: new Date(),
               },
             })
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
               title,
               content: body,
               type,
-              tags: frontmatter.tags || [],
+              tags: (frontmatter.tags as string[]) || [],
             },
           })
           synced.push(`Created: ${relativePath}`)
