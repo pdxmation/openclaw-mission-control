@@ -73,4 +73,10 @@ export const AGENTS_CONFIG: Record<string, Omit<Agent, 'status' | 'totalTasks' |
     emoji: '⚖️',
     description: 'Legal, contracts, compliance, policy review',
   },
+  STITCH: {
+    id: 'STITCH',
+    name: 'Stitch',
+    emoji: '🧪',
+    description: 'Experimental features, research, innovation',
+  },
 }
