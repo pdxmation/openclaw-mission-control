@@ -12,8 +12,8 @@ async function getUserIdFromApiKey(request: NextRequest): Promise<string | null>
   const [type, token] = authHeader.split(' ')
   if (type !== 'Bearer' || !token) return null
 
-  // Check if it's a user API key (starts with mc_)
-  if (token.startsWith('mc_')) {
+  // Check if it's a user API key (starts with mc_) or the NEW prefix (starts with ***)
+  if (token.startsWith('mc_') || token.startsWith('***')) {
     return validateApiKey(token)
   }
 
