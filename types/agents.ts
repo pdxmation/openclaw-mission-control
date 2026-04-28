@@ -79,4 +79,28 @@ export const AGENTS_CONFIG: Record<string, Omit<Agent, 'status' | 'totalTasks' |
     emoji: '🧪',
     description: 'Experimental features, research, innovation',
   },
+  HERMES: {
+    id: 'HERMES',
+    name: 'Hermes CEO',
+    emoji: '🤖🚀',
+    description: 'Orchestrator and Strategic Lead for the Hermes Agent Workforce',
+  },
+  CHOPPER_H: {
+    id: 'CHOPPER_H',
+    name: 'Hermes CTO',
+    emoji: '🔧✨',
+    description: 'Technical Lead and Backend Architect (Hermes Profile)',
+  },
+  SABINE_H: {
+    id: 'SABINE_H',
+    name: 'Hermes Creative',
+    emoji: '📢🎨',
+    description: 'Marketing and UI/UX Design Lead (Hermes Profile)',
+  },
+  STITCH_H: {
+    id: 'STITCH_H',
+    name: 'Hermes Ops',
+    emoji: '🧪⚙️',
+    description: 'Automation and Systems Integration (Hermes Profile)',
+  },
 }
